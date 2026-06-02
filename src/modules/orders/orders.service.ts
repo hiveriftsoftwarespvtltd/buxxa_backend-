@@ -38,6 +38,9 @@ export class OrdersService implements OnModuleInit {
   }
 
   async create(payload: any): Promise<Order> {
+    if (!payload.customerId) {
+      throw new Error('Customer ID is required. Please login to place an order.');
+    }
     const orders = await this.findAll();
     
     // Generate order ID following legacy pattern (KOR-2401, etc.)
