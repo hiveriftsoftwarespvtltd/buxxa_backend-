@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Res, HttpStatus } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import type { Response } from 'express';
 
@@ -12,6 +12,18 @@ export class ProductsController {
     return res.status(HttpStatus.OK).json(products);
   }
 
+  // ── Get single product by slug ──
+  @Get('slug/:slug')
+  async getBySlug(@Param('slug') slug: string, @Res() res: Response) {
+    const product = await this.productsService.findBySlug(slug);
+    if (!product) {
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'Product not found' });
+    }
+    return res.status(HttpStatus.OK).json(product);
+  }
+
   @Post('add')
   async addProduct(@Body() body: any, @Res() res: Response) {
     try {
@@ -19,7 +31,9 @@ export class ProductsController {
       return res.status(HttpStatus.OK).json({ success: true, product });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
 
@@ -30,10 +44,14 @@ export class ProductsController {
       if (product) {
         return res.status(HttpStatus.OK).json({ success: true, product });
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Product not found' });
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'Product not found' });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
 
@@ -44,10 +62,14 @@ export class ProductsController {
       if (product) {
         return res.status(HttpStatus.OK).json({ success: true });
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Product not found' });
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'Product not found' });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
 }

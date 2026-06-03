@@ -115,7 +115,7 @@ export class Product extends Document {
   stock: number;
 
   @Prop({ default: true })
-  declare isNew: boolean;
+  isNewArrival: boolean;
 
   @Prop({ default: false })
   isBestseller: boolean;

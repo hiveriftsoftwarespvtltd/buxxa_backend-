@@ -124,4 +124,21 @@ export class CustomersService {
     await customer.save();
     return customer.addresses;
   }
+
+  async updateProfile(email: string, updatedFields: { name?: string; phone?: string; city?: string }): Promise<Customer> {
+    const customer = await this.findByEmail(email);
+    if (!customer) throw new Error('Customer not found');
+
+    if (updatedFields.name !== undefined) {
+      customer.name = updatedFields.name;
+    }
+    if (updatedFields.phone !== undefined) {
+      customer.phone = updatedFields.phone;
+    }
+    if (updatedFields.city !== undefined) {
+      customer.city = updatedFields.city;
+    }
+
+    return customer.save();
+  }
 }

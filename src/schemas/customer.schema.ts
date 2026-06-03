@@ -24,6 +24,12 @@ export class Customer extends Document {
   @Prop({ default: 'customer' })
   role: string; // customer, admin
 
+  @Prop()
+  resetPasswordOtp?: string;
+
+  @Prop()
+  resetPasswordOtpExpiry?: Date;
+
   @Prop({ type: [Object], default: [] })
   addresses: any[]; // shipping & billing addresses
 }

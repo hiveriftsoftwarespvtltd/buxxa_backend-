@@ -10,6 +10,19 @@ export class ProductsService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    // Migrate existing products to set isNewArrival to match isNew (or fallback to true)
+    try {
+      const updateResult = await this.productModel.updateMany(
+        { isNewArrival: { $exists: false } },
+        { $set: { isNewArrival: true } }
+      ).exec();
+      if (updateResult.modifiedCount > 0) {
+        console.log(`🧹 Migrated ${updateResult.modifiedCount} products to use isNewArrival schema field.`);
+      }
+    } catch (migrationErr) {
+      console.error('Migration isNew -> isNewArrival error:', migrationErr);
+    }
+
     // Seed default products if empty
     const count = await this.productModel.countDocuments();
     if (count === 0) {
@@ -42,7 +55,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.8,
           reviews: 124,
           stock: 45,
-          isNew: false,
+          isNewArrival: false,
           isBestseller: true,
           img: 'images/prod-rose.png',
           imgs: ['images/prod-rose.png', 'images/hero1.png', 'images/prod-blossom.png', 'images/hero3.png'],
@@ -81,7 +94,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.9,
           reviews: 89,
           stock: 20,
-          isNew: false,
+          isNewArrival: false,
           isBestseller: true,
           img: 'images/prod-oud.png',
           imgs: ['images/prod-oud.png', 'images/hero2.png', 'images/prod-amber.png', 'images/prod-ocean.png'],
@@ -121,7 +134,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.6,
           reviews: 67,
           stock: 80,
-          isNew: true,
+          isNewArrival: true,
           isBestseller: false,
           img: 'images/prod-blossom.png',
           imgs: ['images/prod-blossom.png', 'images/prod-rose.png'],
@@ -160,7 +173,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.7,
           reviews: 156,
           stock: 35,
-          isNew: false,
+          isNewArrival: false,
           isBestseller: true,
           img: 'images/prod-noir.png',
           imgs: ['images/prod-noir.png', 'images/hero2.png'],
@@ -200,7 +213,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.5,
           reviews: 201,
           stock: 120,
-          isNew: false,
+          isNewArrival: false,
           isBestseller: false,
           img: 'images/prod-ocean.png',
           imgs: ['images/prod-ocean.png', 'images/prod-oud.png'],
@@ -239,7 +252,7 @@ export class ProductsService implements OnModuleInit {
           rating: 5.0,
           reviews: 43,
           stock: 12,
-          isNew: false,
+          isNewArrival: false,
           isBestseller: true,
           img: 'images/prod-velvet.png',
           imgs: ['images/prod-velvet.png', 'images/hero2.png'],
@@ -279,7 +292,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.4,
           reviews: 88,
           stock: 95,
-          isNew: true,
+          isNewArrival: true,
           isBestseller: false,
           img: 'images/prod-citrus.png',
           imgs: ['images/prod-citrus.png'],
@@ -318,7 +331,7 @@ export class ProductsService implements OnModuleInit {
           rating: 4.6,
           reviews: 112,
           stock: 60,
-          isNew: false,
+          isNewArrival: false,
           isBestseller: false,
           img: 'images/prod-amber.png',
           imgs: ['images/prod-amber.png'],
@@ -392,7 +405,7 @@ export class ProductsService implements OnModuleInit {
       rating: 5.0,
       reviews: 0,
       stock: parseInt(payload.stock) || 50,
-      isNew: true,
+      isNewArrival: true,
       seo: payload.seo || {
         title: `${payload.name || 'New Fragrance'} | KIORA`,
         description: payload.subtitle || 'Premium KIORA fragrance',
@@ -406,6 +419,10 @@ export class ProductsService implements OnModuleInit {
   }
 
   async update(id: number, payload: any): Promise<Product | null> {
+    console.log('--- PRODUCTS SERVICE UPDATE START ---');
+    console.log('Update Product ID:', id);
+    console.log('Incoming payload:', JSON.stringify(payload, null, 2));
+
     const originalPrice = payload.originalPrice ? parseInt(payload.originalPrice) : null;
     let discount = 0;
     if (originalPrice && payload.price) {
@@ -435,7 +452,19 @@ export class ProductsService implements OnModuleInit {
       updateData.notes = notes;
     }
 
-    return this.productModel.findOneAndUpdate({ id }, { $set: updateData }, { new: true }).exec();
+    console.log('Final updateData object to be sent to Mongo:', JSON.stringify(updateData, null, 2));
+
+    const updatedDoc = await this.productModel.findOneAndUpdate({ id }, { $set: updateData }, { new: true }).exec();
+    console.log('Returned document from DB after update:', updatedDoc ? JSON.stringify({
+      id: updatedDoc.id,
+      name: updatedDoc.name,
+      isBestseller: updatedDoc.isBestseller,
+      isNewArrival: updatedDoc.isNewArrival,
+      isFeatured: updatedDoc.isFeatured
+    }, null, 2) : 'null');
+    console.log('--- PRODUCTS SERVICE UPDATE END ---');
+
+    return updatedDoc;
   }
 
   async delete(id: number): Promise<any> {

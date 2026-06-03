@@ -33,8 +33,20 @@ export class OrdersService implements OnModuleInit {
     return this.orderModel.find().sort({ createdAt: -1 }).exec();
   }
 
-  async findByEmail(email: string): Promise<Order[]> {
-    return this.orderModel.find({ email: email.toLowerCase() }).sort({ createdAt: -1 }).exec();
+  async findByEmailOrCustomerId(email?: string, customerId?: string): Promise<Order[]> {
+    const query: any = {};
+    const conditions: any[] = [];
+    if (email && email !== 'undefined' && email !== 'null') {
+      conditions.push({ email: email.toLowerCase() });
+    }
+    if (customerId && customerId !== 'undefined' && customerId !== 'null') {
+      conditions.push({ customerId: customerId });
+    }
+    if (conditions.length > 0) {
+      query.$or = conditions;
+      return this.orderModel.find(query).sort({ createdAt: -1 }).exec();
+    }
+    return [];
   }
 
   async create(payload: any): Promise<Order> {
@@ -47,8 +59,9 @@ export class OrdersService implements OnModuleInit {
     const orderNum = 2400 + orders.length + 1;
     const orderId = `KOR-${orderNum}`;
 
-    const dateStr = new Date().toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric'
+    const dateStr = new Date().toLocaleString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', hour12: true
     });
 
     const calculatedTotal = parseInt(payload.total) || 2999;
@@ -88,7 +101,8 @@ export class OrdersService implements OnModuleInit {
 
   async updateStatus(orderId: string, status: string): Promise<Order | null> {
     const updateData: any = { status };
-    if (status === 'delivered') {
+    const s = status.toLowerCase();
+    if (s === 'delivered' || s === 'completed' || s === 'complete') {
       updateData.payment = 'paid';
     }
     return this.orderModel.findOneAndUpdate({ id: orderId }, { $set: updateData }, { new: true }).exec();

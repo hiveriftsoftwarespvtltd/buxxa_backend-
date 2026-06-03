@@ -79,4 +79,22 @@ export class CustomersController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
     }
   }
+
+  @Post('profile/update')
+  async updateProfile(@Body() body: { email: string; name?: string; phone?: string; city?: string }, @Res() res: Response) {
+    try {
+      if (!body.email) {
+        return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'Email is required' });
+      }
+      const customer = await this.customersService.updateProfile(body.email, body);
+      
+      const customerObj = customer.toObject();
+      delete customerObj.password;
+
+      return res.status(HttpStatus.OK).json({ success: true, customer: customerObj });
+    } catch (err) {
+      console.error(err);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+    }
+  }
 }

@@ -7,10 +7,14 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  async getOrders(@Query('email') email: string, @Res() res: Response) {
+  async getOrders(
+    @Query('email') email: string,
+    @Query('customerId') customerId: string,
+    @Res() res: Response,
+  ) {
     try {
-      if (email) {
-        const orders = await this.ordersService.findByEmail(email);
+      if (email || customerId) {
+        const orders = await this.ordersService.findByEmailOrCustomerId(email, customerId);
         return res.status(HttpStatus.OK).json(orders);
       }
       const orders = await this.ordersService.findAll();
