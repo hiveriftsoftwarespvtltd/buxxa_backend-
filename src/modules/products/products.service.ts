@@ -23,6 +23,41 @@ export class ProductsService implements OnModuleInit {
       console.error('Migration isNew -> isNewArrival error:', migrationErr);
     }
 
+    // Migrate existing image paths from .png to .webp in MongoDB
+    try {
+      const productsToUpdate = await this.productModel.find({
+        $or: [
+          { img: /\.png$/i },
+          { imgs: /\.png$/i }
+        ]
+      }).exec();
+      
+      let updatedCount = 0;
+      for (const prod of productsToUpdate) {
+        let changed = false;
+        if (prod.img && prod.img.endsWith('.png')) {
+          prod.img = prod.img.replace(/\.png$/i, '.webp');
+          changed = true;
+        }
+        if (prod.imgs && prod.imgs.length > 0) {
+          const originalImgsStr = JSON.stringify(prod.imgs);
+          prod.imgs = prod.imgs.map(img => img.endsWith('.png') ? img.replace(/\.png$/i, '.webp') : img);
+          if (JSON.stringify(prod.imgs) !== originalImgsStr) {
+            changed = true;
+          }
+        }
+        if (changed) {
+          await prod.save();
+          updatedCount++;
+        }
+      }
+      if (updatedCount > 0) {
+        console.log(`🧹 Migrated ${updatedCount} products from .png to .webp image paths.`);
+      }
+    } catch (migrationErr) {
+      console.error('Migration .png -> .webp error:', migrationErr);
+    }
+
     // Seed default products if empty
     const count = await this.productModel.countDocuments();
     if (count === 0) {
@@ -57,15 +92,15 @@ export class ProductsService implements OnModuleInit {
           stock: 45,
           isNewArrival: false,
           isBestseller: true,
-          img: 'images/prod-rose.png',
-          imgs: ['images/prod-rose.png', 'images/hero1.png', 'images/prod-blossom.png', 'images/hero3.png'],
+          img: 'images/prod-rose.webp',
+          imgs: ['images/prod-rose.webp', 'images/hero1.webp', 'images/prod-blossom.webp', 'images/hero3.webp'],
           description: '<p>Rose Mystique is an intoxicating floral fragrance that captures the essence of a blooming rose garden at dawn. The fresh bergamot opening gives way to a heart of jasmine and iris, before settling into a warm, sensual base of sandalwood and musk. A fragrance for the modern woman who appreciates timeless elegance.</p>',
           seo: {
             title: 'Rose Mystique - Floral Eau de Parfum | KIORA',
             description: 'Discover Rose Mystique, a timeless floral bouquet by KIORA. Notes of rose, bergamot, jasmine & sandalwood.',
             keywords: ['rose perfume', 'floral perfume', 'women perfume', 'KIORA', 'rose mystique'],
             slug: 'rose-mystique',
-            ogImage: 'images/prod-rose.png'
+            ogImage: 'images/prod-rose.webp'
           }
         },
         {
@@ -96,15 +131,15 @@ export class ProductsService implements OnModuleInit {
           stock: 20,
           isNewArrival: false,
           isBestseller: true,
-          img: 'images/prod-oud.png',
-          imgs: ['images/prod-oud.png', 'images/hero2.png', 'images/prod-amber.png', 'images/prod-ocean.png'],
+          img: 'images/prod-oud.webp',
+          imgs: ['images/prod-oud.webp', 'images/hero2.webp', 'images/prod-amber.webp', 'images/prod-ocean.webp'],
           description: '<p>Oud Royale is a statement fragrance for those who command presence. Opening with a bold spark of saffron and black pepper, it transitions into a rich heart of precious oud wood and Turkish rose. The base of aged amber and vetiver creates an unforgettable sillage. This is royalty in a bottle.</p>',
           seo: {
             title: 'Oud Royale - Extrait de Parfum for Men | KIORA',
             description: 'Oud Royale by KIORA — a rich oriental fragrance with saffron, oud, and amber. True luxury in every drop.',
             keywords: ['oud perfume', 'men perfume', 'oriental perfume', 'KIORA', 'oud royale'],
             slug: 'oud-royale',
-            ogImage: 'images/prod-oud.png'
+            ogImage: 'images/prod-oud.webp'
           }
         },
         {
@@ -136,15 +171,15 @@ export class ProductsService implements OnModuleInit {
           stock: 80,
           isNewArrival: true,
           isBestseller: false,
-          img: 'images/prod-blossom.png',
-          imgs: ['images/prod-blossom.png', 'images/prod-rose.png'],
+          img: 'images/prod-blossom.webp',
+          imgs: ['images/prod-blossom.webp', 'images/prod-rose.webp'],
           description: '<p>Blossom Rain evokes the joy of spring rain on flower petals. A light and airy composition that feels like a gentle breeze of floral freshness. Perfect for everyday wear and those who love delicate, feminine scents.</p>',
           seo: {
             title: 'Blossom Rain - Fresh Floral Eau de Toilette | KIORA',
             description: 'Blossom Rain by KIORA — fresh petals after morning rain. Peach, peony, and white musk in a light, airy fragrance.',
             keywords: ['blossom perfume', 'floral women perfume', 'fresh perfume', 'KIORA', 'blossom rain'],
             slug: 'blossom-rain',
-            ogImage: 'images/prod-blossom.png'
+            ogImage: 'images/prod-blossom.webp'
           }
         },
         {
@@ -175,15 +210,15 @@ export class ProductsService implements OnModuleInit {
           stock: 35,
           isNewArrival: false,
           isBestseller: true,
-          img: 'images/prod-noir.png',
-          imgs: ['images/prod-noir.png', 'images/hero2.png'],
+          img: 'images/prod-noir.webp',
+          imgs: ['images/prod-noir.webp', 'images/hero2.webp'],
           description: '<p>Noir Absolu is a seductive and mysterious fragrance that blurs the line between masculine and feminine. A masterpiece of contrasts — dark and light, sweet and smoky, intimate and powerful. For those who dare to leave an impression.</p>',
           seo: {
             title: 'Noir Absolu - Unisex Oriental Eau de Parfum | KIORA',
             description: 'Noir Absolu by KIORA — mysterious, sensual, and unforgettable. A unisex oriental with black currant, patchouli, and amber.',
             keywords: ['noir perfume', 'unisex perfume', 'oriental scent', 'KIORA', 'noir absolu'],
             slug: 'noir-absolu',
-            ogImage: 'images/prod-noir.png'
+            ogImage: 'images/prod-noir.webp'
           }
         },
         {
@@ -215,15 +250,15 @@ export class ProductsService implements OnModuleInit {
           stock: 120,
           isNewArrival: false,
           isBestseller: false,
-          img: 'images/prod-ocean.png',
-          imgs: ['images/prod-ocean.png', 'images/prod-oud.png'],
+          img: 'images/prod-ocean.webp',
+          imgs: ['images/prod-ocean.webp', 'images/prod-oud.webp'],
           description: '<p>Ocean Drift captures the invigorating essence of an open sea voyage. A fresh, clean fragrance that energizes and refreshes from morning to night. Perfect for the adventurous modern man.</p>',
           seo: {
             title: 'Ocean Drift - Fresh Aquatic Eau de Toilette | KIORA',
             description: 'Ocean Drift by KIORA — a fresh aquatic breeze with sea salt, lime, and cedarwood. Energizing all-day freshness.',
             keywords: ['aquatic perfume', 'fresh men perfume', 'ocean perfume', 'KIORA', 'ocean drift'],
             slug: 'ocean-drift',
-            ogImage: 'images/prod-ocean.png'
+            ogImage: 'images/prod-ocean.webp'
           }
         },
         {
@@ -254,15 +289,15 @@ export class ProductsService implements OnModuleInit {
           stock: 12,
           isNewArrival: false,
           isBestseller: true,
-          img: 'images/prod-velvet.png',
-          imgs: ['images/prod-velvet.png', 'images/hero2.png'],
+          img: 'images/prod-velvet.webp',
+          imgs: ['images/prod-velvet.webp', 'images/hero2.webp'],
           description: '<p>Velvet Oud is our most prestigious and exclusive creation. A masterclass in oriental perfumery using only the finest ingredients — frankincense, rare oud, and precious saffron layered over a warm leather base. Reserve yours before it\'s gone.</p>',
           seo: {
             title: 'Velvet Oud - Exclusive Extrait de Parfum | KIORA',
             description: 'Velvet Oud by KIORA — the pinnacle of oriental luxury. Frankincense, oud, saffron, and leather in an exclusive extrait.',
             keywords: ['velvet oud', 'luxury perfume', 'oriental unisex', 'KIORA', 'oud extrait'],
             slug: 'velvet-oud',
-            ogImage: 'images/prod-velvet.png'
+            ogImage: 'images/prod-velvet.webp'
           }
         },
         {
@@ -294,15 +329,15 @@ export class ProductsService implements OnModuleInit {
           stock: 95,
           isNewArrival: true,
           isBestseller: false,
-          img: 'images/prod-citrus.png',
-          imgs: ['images/prod-citrus.png'],
+          img: 'images/prod-citrus.webp',
+          imgs: ['images/prod-citrus.webp'],
           description: '<p>A vibrant, uplifting fragrance that brings the energy of a Mediterranean citrus grove. Light, fresh, and joyful — perfect for warm days and sunny getaways. Citrus Bloom is your everyday burst of happiness.</p>',
           seo: {
             title: 'Citrus Bloom - Fresh Citrus Eau de Toilette | KIORA',
             description: 'Citrus Bloom by KIORA — zesty lemon, neroli, and yuzu with white flowers and musk. Fresh, joyful, all-day wear.',
             keywords: ['citrus perfume', 'fresh women perfume', 'lemon perfume', 'KIORA', 'citrus bloom'],
             slug: 'citrus-bloom',
-            ogImage: 'images/prod-citrus.png'
+            ogImage: 'images/prod-citrus.webp'
           }
         },
         {
@@ -333,15 +368,15 @@ export class ProductsService implements OnModuleInit {
           stock: 60,
           isNewArrival: false,
           isBestseller: false,
-          img: 'images/prod-amber.png',
-          imgs: ['images/prod-amber.png'],
+          img: 'images/prod-amber.webp',
+          imgs: ['images/prod-amber.webp'],
           description: '<p>Amber Elixir is a rich, enveloping fragrance built around a luminous amber accord. Sweet, warm, and deeply comforting — like a cashmere blanket on a winter evening. Notes of orange and cinnamon add a spicy brightness to this oriental masterpiece.</p>',
           seo: {
             title: 'Amber Elixir - Warm Oriental Eau de Parfum | KIORA',
             description: 'Amber Elixir by KIORA — warm, resinous, and captivating. Orange, amber, and tonka bean in a rich oriental EDP.',
             keywords: ['amber perfume', 'oriental men perfume', 'warm perfume', 'KIORA', 'amber elixir'],
             slug: 'amber-elixir',
-            ogImage: 'images/prod-amber.png'
+            ogImage: 'images/prod-amber.webp'
           }
         }
       ];
@@ -411,7 +446,7 @@ export class ProductsService implements OnModuleInit {
         description: payload.subtitle || 'Premium KIORA fragrance',
         keywords: [slug, 'KIORA', 'perfume'],
         slug,
-        ogImage: payload.img || 'images/prod-rose.png'
+        ogImage: payload.img || 'images/prod-rose.webp'
       }
     });
 
