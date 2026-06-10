@@ -32,6 +32,30 @@ export class CustomersController {
     }
   }
 
+  @Post('send-signup-otp')
+  async sendSignupOtp(@Body() body: any, @Res() res: Response) {
+    try {
+      const result = await this.customersService.sendSignupOtp(body);
+      return res.status(HttpStatus.OK).json(result);
+    } catch (err) {
+      console.error(err);
+      return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: err.message });
+    }
+  }
+
+  @Post('verify-signup-otp')
+  async verifySignupOtp(@Body() body: { email: string; otp: string }, @Res() res: Response) {
+    try {
+      const customer = await this.customersService.verifySignupOtp(body.email, body.otp);
+      const customerObj = customer.toObject();
+      delete customerObj.password;
+      return res.status(HttpStatus.OK).json({ success: true, customer: customerObj });
+    } catch (err) {
+      console.error(err);
+      return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: err.message });
+    }
+  }
+
   @Get('addresses')
   async getAddresses(@Query('email') emailQuery: string, @Body() body: any, @Res() res: Response) {
     try {

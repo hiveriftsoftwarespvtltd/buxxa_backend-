@@ -3,11 +3,18 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Customer } from '../../schemas/customer.schema';
 import * as bcrypt from 'bcrypt';
+import { ConfigService } from '@nestjs/config';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class CustomersService {
+  // In-memory cache for signup OTPs
+  private signupOtps = new Map<string, { otp: string; expiry: Date; payload: any }>();
+
   constructor(
     @InjectModel(Customer.name) private readonly customerModel: Model<Customer>,
+    private readonly configService: ConfigService,
+    private readonly mailerService: MailerService,
   ) {}
 
   async findAll(): Promise<Customer[]> {
@@ -17,6 +24,95 @@ export class CustomersService {
 
   async findByEmail(email: string): Promise<Customer | null> {
     return this.customerModel.findOne({ email: email.toLowerCase() }).exec();
+  }
+
+  async sendSignupOtp(payload: any): Promise<any> {
+    const email = payload.email.toLowerCase();
+    const existing = await this.findByEmail(email);
+    if (existing) {
+      throw new Error('Email address already registered');
+    }
+
+    // Generate 6-digit numeric OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = new Date();
+    expiry.setMinutes(expiry.getMinutes() + 10); // Expire in 10 minutes
+
+    // Store in-memory
+    this.signupOtps.set(email, { otp, expiry, payload });
+    console.log(`[DEVELOPMENT ALERT] Generated signup OTP for ${email} is: ${otp}`);
+
+    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
+    const emailHtml = `
+      <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
+        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
+          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">BUXXA</h1>
+          <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">Premium Bags & Luggage</span>
+        </div>
+        
+        <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #8B6914; margin-top: 0; font-weight: 500;">Verify Your Email Address</h2>
+        <p style="font-size: 14px; line-height: 1.6; color: #4A3B1F;">
+          Dear <strong>${payload.firstName || 'Customer'}</strong>,<br /><br />
+          Thank you for starting your premium journey with BUXXA. Use the verification code below to verify your email and complete your registration:
+        </p>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #1A1208; background-color: #FAF6EE; padding: 15px 30px; border: 1px solid #E8DFC8; border-radius: 4px;">${otp}</span>
+        </div>
+
+        <p style="font-size: 13px; line-height: 1.6; color: #8A7A5A; text-align: center;">
+          This code is valid for 10 minutes. If you did not initiate this registration request, please disregard this email.
+        </p>
+        
+        <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+        </div>
+      </div>
+    `;
+
+    try {
+      await this.mailerService.sendMail({
+        to: email,
+        from: `BUXXA <${emailUser}>`,
+        subject: `🔐 Email Verification Code — BUXXA`,
+        html: emailHtml,
+      });
+      return { success: true, message: 'Verification OTP sent to your email.' };
+    } catch (err) {
+      console.error('Failed to send verification email:', err);
+      console.log(`[DEVELOPMENT ALERT] SMTP send failed. Signup OTP for ${email} is: ${otp}`);
+      return {
+        success: true,
+        message: 'Verification OTP sent to your email.',
+        tempPassDev: otp // Development helper
+      };
+    }
+  }
+
+  async verifySignupOtp(email: string, otp: string): Promise<any> {
+    const normEmail = email.toLowerCase();
+    const cached = this.signupOtps.get(normEmail);
+
+    if (!cached) {
+      throw new Error('No active signup request found for this email address.');
+    }
+
+    if (new Date() > cached.expiry) {
+      this.signupOtps.delete(normEmail);
+      throw new Error('Verification OTP has expired. Please try registering again.');
+    }
+
+    if (cached.otp !== otp) {
+      throw new Error('Invalid verification OTP. Please check your email.');
+    }
+
+    // OTP matches and is valid! Complete registration
+    const customer = await this.register(cached.payload);
+
+    // Remove from in-memory cache
+    this.signupOtps.delete(normEmail);
+
+    return customer;
   }
 
   async register(payload: any): Promise<Customer> {

@@ -22,4 +22,32 @@ export class CategoriesController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
     }
   }
+
+  @Post('update')
+  async updateCategory(@Body() body: any, @Res() res: Response) {
+    try {
+      const category = await this.categoriesService.update(parseInt(body.id), body);
+      if (category) {
+        return res.status(HttpStatus.OK).json({ success: true, category });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Category not found' });
+    } catch (err) {
+      console.error(err);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+    }
+  }
+
+  @Post('delete')
+  async deleteCategory(@Body() body: { id: any }, @Res() res: Response) {
+    try {
+      const category = await this.categoriesService.delete(parseInt(body.id));
+      if (category) {
+        return res.status(HttpStatus.OK).json({ success: true });
+      }
+      return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Category not found' });
+    } catch (err) {
+      console.error(err);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+    }
+  }
 }

@@ -36,3 +36,9 @@ Thumbs.db
 .env.production
 .env.development
 .env.local
+
+# Uploads and temporary files
+public/images/*
+!public/images/.gitkeep
+src/categories.json
+src/products.json

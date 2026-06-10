@@ -25,13 +25,13 @@ export class ContactService {
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
-          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">KIORA LIFE Style</h1>
+          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">BUXXA</h1>
           <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">Customer Inquiry Received</span>
         </div>
         
         <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #8B6914; margin-top: 0; font-weight: 500;">New Contact Form Submission</h2>
         <p style="font-size: 14px; line-height: 1.6; color: #4A3B1F;">
-          You have received a new contact inquiry from the KIORA website. Details are outlined below:
+          You have received a new contact inquiry from the BUXXA website. Details are outlined below:
         </p>
         
         <div style="background-color: #FAF6EE; padding: 20px; border-radius: 4px; border: 1px solid #E8DFC8; margin: 20px 0; font-size: 13px; line-height: 1.8;">
@@ -57,15 +57,15 @@ export class ContactService {
         </div>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 KIORA LIFE Style. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
         </div>
       </div>
     `;
-
+ 
     await this.mailerService.sendMail({
       to: receiverEmail,
-      from: `KIORA Website Alerts <${emailUser}>`,
-      subject: `🔔 New Contact Inquiry: ${subject || 'General Scent Inquiry'}`,
+      from: `BUXXA Website Alerts <${emailUser}>`,
+      subject: `🔔 New Contact Inquiry: ${subject || 'General Inquiry'}`,
       html: emailHtml,
     });
 

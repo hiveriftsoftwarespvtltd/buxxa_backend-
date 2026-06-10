@@ -31,12 +31,12 @@ export class AuthService {
     await customer.save();
 
     // Send email with OTP
-    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@kioralifestyle.com';
+    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
-          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">KIORA LIFE Style</h1>
-          <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">The Art of Fragrance</span>
+          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">BUXXA</h1>
+          <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">Premium Bags & Luggage</span>
         </div>
         
         <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #8B6914; margin-top: 0; font-weight: 500;">Password Reset Request</h2>
@@ -54,7 +54,7 @@ export class AuthService {
         </p>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 KIORA LIFE Style. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
         </div>
       </div>
     `;
@@ -62,8 +62,8 @@ export class AuthService {
     try {
       await this.mailerService.sendMail({
         to: customer.email,
-        from: `KIORA LIFE Style <${emailUser}>`,
-        subject: `🔐 Password Reset Code — KIORA`,
+        from: `BUXXA <${emailUser}>`,
+        subject: `🔐 Password Reset Code — BUXXA`,
         html: emailHtml,
       });
       return { success: true, message: 'OTP sent to your email.' };
@@ -100,7 +100,7 @@ export class AuthService {
     let isTemp = false;
 
     if (!passwordToSet) {
-      passwordToSet = 'KIO-' + Math.floor(100000 + Math.random() * 900000);
+      passwordToSet = 'BUX-' + Math.floor(100000 + Math.random() * 900000);
       isTemp = true;
     }
 
@@ -114,23 +114,23 @@ export class AuthService {
     await customer.save();
 
     // Send email with credentials
-    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@kioralifestyle.com';
+    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
-          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">KIORA LIFE Style</h1>
-          <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">The Art of Fragrance</span>
+          <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">BUXXA</h1>
+          <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">Premium Bags & Luggage</span>
         </div>
         
         <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #8B6914; margin-top: 0; font-weight: 500;">Password Updated Successfully</h2>
         <p style="font-size: 14px; line-height: 1.6; color: #4A3B1F;">
           Dear <strong>${customer.name}</strong>,<br /><br />
-          The password for your KIORA account has been successfully reset. 
+          The password for your BUXXA account has been successfully reset. 
           ${isTemp ? `A secure temporary password has been generated for you: <strong style="color: #8B6914;">${passwordToSet}</strong>` : `You can now log in using your newly configured password.`}
         </p>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 KIORA LIFE Style. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
         </div>
       </div>
     `;
@@ -138,8 +138,8 @@ export class AuthService {
     try {
       await this.mailerService.sendMail({
         to: customer.email,
-        from: `KIORA LIFE Style <${emailUser}>`,
-        subject: `✨ Password Reset Completed — KIORA`,
+        from: `BUXXA <${emailUser}>`,
+        subject: `✨ Password Reset Completed — BUXXA`,
         html: emailHtml,
       });
       return { success: true, message: 'Password reset successfully!' };
@@ -163,14 +163,14 @@ export class AuthService {
     // 1. Check Admin Credentials
     if (envAdminEmail && email === envAdminEmail.toLowerCase()) {
       if (password === envAdminPass) {
-        const tokenPayload = { email, role: 'admin', name: 'KIORA Admin' };
+        const tokenPayload = { email, role: 'admin', name: 'BUXXA Admin' };
         const token = this.jwtService.sign(tokenPayload);
         return {
           success: true,
           token,
           user: {
             id: 'admin-123',
-            name: 'Concierge Admin',
+            name: 'BUXXA Admin',
             email,
             role: 'admin',
           },

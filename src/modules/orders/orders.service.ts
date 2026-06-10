@@ -112,9 +112,9 @@ export class OrdersService implements OnModuleInit {
     try {
       const emailUser = this.configService.get<string>('EMAIL_USER');
       if (!emailUser) return;
-
+ 
       console.log(`✉️ Sending luxury HTML invoice email for Order ${order.id}...`);
-
+ 
       const itemsRows = order.itemsDetails.map((item: any) => `
         <tr style="border-bottom: 1px solid #E8DFC8;">
           <td style="padding: 12px; font-size: 14px; color: #1A1208;"><strong>${item.name}</strong> (${item.size})</td>
@@ -122,18 +122,18 @@ export class OrdersService implements OnModuleInit {
           <td style="padding: 12px; font-size: 14px; color: #C9A84C; font-weight: bold; text-align: right;">₹${item.price.toLocaleString('en-IN')}</td>
         </tr>
       `).join('');
-
+ 
       const emailHtml = `
         <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
           <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
-            <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">KIORA LIFE Style</h1>
-            <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">The Art of Fragrance</span>
+            <h1 style="font-family: 'Playfair Display', serif; font-size: 28px; margin: 0; color: #1A1208; letter-spacing: 2px;">BUXXA</h1>
+            <span style="font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: #C9A84C; display: block; margin-top: 5px;">Premium Bags & Luggage</span>
           </div>
           
           <h2 style="font-family: 'Playfair Display', serif; font-size: 20px; color: #8B6914; margin-top: 0; font-weight: 500;">Order Confirmed!</h2>
           <p style="font-size: 14px; line-height: 1.6; color: #4A3B1F;">
             Dear <strong>${order.customer}</strong>,<br />
-            Thank you for shopping with KIORA. Your order has been placed successfully and is currently being processed. Here is your transaction summary:
+            Thank you for shopping with BUXXA. Your order has been placed successfully and is currently being processed. Here is your transaction summary:
           </p>
           
           <div style="background-color: #FAF6EE; padding: 15px; border-radius: 4px; border: 1px solid #E8DFC8; margin: 20px 0; font-size: 13px;">
@@ -157,7 +157,7 @@ export class OrdersService implements OnModuleInit {
           <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
               <tr style="background-color: #FAF6EE; border-bottom: 1px solid #E8DFC8;">
-                <th style="padding: 10px; font-size: 12px; color: #8A7A5A; text-align: left;">Fragrance Scent</th>
+                <th style="padding: 10px; font-size: 12px; color: #8A7A5A; text-align: left;">Product Item</th>
                 <th style="padding: 10px; font-size: 12px; color: #8A7A5A; text-align: center; width: 60px;">Qty</th>
                 <th style="padding: 10px; font-size: 12px; color: #8A7A5A; text-align: right; width: 100px;">Price</th>
               </tr>
@@ -179,15 +179,15 @@ export class OrdersService implements OnModuleInit {
           </p>
           
           <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-            <p style="margin: 0;">© 2026 KIORA LIFE Style. All rights reserved.</p>
+            <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
             <p style="margin: 5px 0 0;">Need assistance? Get in touch at <a href="mailto:${emailUser}" style="color: #C9A84C; text-decoration: none;">${emailUser}</a></p>
           </div>
         </div>
       `;
-
+ 
       await this.mailerService.sendMail({
         to: order.email,
-        from: `KIORA LIFE Style <${emailUser}>`,
+        from: `BUXXA <${emailUser}>`,
         subject: `✨ Order Placed Successfully — ${order.id}`,
         html: emailHtml,
       });

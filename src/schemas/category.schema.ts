@@ -12,7 +12,7 @@ export class Category extends Document {
   @Prop({ required: true, unique: true })
   slug: string;
 
-  @Prop({ default: '🌸' })
+  @Prop({ default: '🎒' })
   emoji: string;
 
   @Prop({ default: '' })
@@ -23,6 +23,9 @@ export class Category extends Document {
 
   @Prop({ default: 0 })
   count: number;
+
+  @Prop({ type: [String], default: [] })
+  subItems: string[];
 }
 
 export const CategorySchema = SchemaFactory.createForClass(Category);
