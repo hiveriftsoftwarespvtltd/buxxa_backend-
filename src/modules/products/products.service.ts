@@ -113,9 +113,9 @@ export class ProductsService implements OnModuleInit {
       stock: parseInt(payload.stock) || 50,
       isNewArrival: true,
       seo: payload.seo || {
-        title: `${payload.name || 'New Fragrance'} | KIORA`,
-        description: payload.subtitle || 'Premium KIORA fragrance',
-        keywords: [slug, 'KIORA', 'perfume'],
+        title: `${payload.name || 'New Product'} | BUXXA`,
+        description: payload.subtitle || 'Premium BUXXA product',
+        keywords: [slug, 'BUXXA', 'bag'],
         slug,
         ogImage: payload.img || 'images/prod-rose.webp'
       }

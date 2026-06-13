@@ -57,7 +57,7 @@ export class Product extends Document {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ default: 'KIORA' })
+  @Prop({ default: 'BUXXA' })
   brand: string;
 
   @Prop({ required: true, unique: true })

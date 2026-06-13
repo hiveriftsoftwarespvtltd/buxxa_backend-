@@ -43,7 +43,7 @@ import { UploadModule } from './modules/upload/upload.module';
           },
         },
         defaults: {
-          from: configService.get<string>('MAIL_FROM') || '"KIORA LIFE Style" <noreply@kioralifestyle.com>',
+          from: configService.get<string>('MAIL_FROM') || '"BUXXA" <noreply@buxxa.com>',
         },
       }),
       inject: [ConfigService],
