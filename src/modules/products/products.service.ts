@@ -37,7 +37,72 @@ export class ProductsService implements OnModuleInit {
       console.error('Migration isNew -> isNewArrival error:', migrationErr);
     }
 
-    // 3. Seed default products from products.json if empty
+    // 3. Migrate legacy perfume attributes (SKUs starting with KOR-, sizes 50ml/100ml) to bag attributes (BX-, One Size)
+    try {
+      const allDbProducts = await this.productModel.find().exec();
+      for (const prod of allDbProducts) {
+        let updated = false;
+        let pSizes = prod.sizes || [];
+        let pSelectedSize = prod.selectedSize;
+        let pSku = prod.sku;
+        let pVariants = prod.variants || [];
+
+        if (pSizes.includes('50ml') || pSizes.includes('100ml')) {
+          pSizes = ['One Size'];
+          pSelectedSize = 'One Size';
+          updated = true;
+        }
+
+        if (pSku && pSku.startsWith('KOR-')) {
+          pSku = pSku.replace('KOR-', 'BX-');
+          updated = true;
+        }
+
+        if (pVariants.length > 0) {
+          const mappedVariants = pVariants.map((v: any) => {
+            let varUpdated = false;
+            let vSize = v.size;
+            let vSku = v.sku;
+
+            if (vSize === '50ml' || vSize === '100ml') {
+              vSize = 'One Size';
+              varUpdated = true;
+            }
+            if (vSku && vSku.startsWith('KOR-')) {
+              vSku = vSku.replace('KOR-', 'BX-');
+              varUpdated = true;
+            }
+            if (varUpdated) {
+              updated = true;
+              return { ...v, size: vSize, sku: vSku };
+            }
+            return v;
+          });
+          if (updated) {
+            pVariants = mappedVariants;
+          }
+        }
+
+        if (updated) {
+          console.log(`🧹 Migrating legacy product metadata (SKU/Size) for: ${prod.name}`);
+          await this.productModel.updateOne(
+            { _id: prod._id },
+            { 
+              $set: { 
+                sizes: pSizes, 
+                selectedSize: pSelectedSize,
+                sku: pSku,
+                variants: pVariants
+              } 
+            }
+          ).exec();
+        }
+      }
+    } catch (migrErr) {
+      console.error('Error migrating legacy product size/sku attributes:', migrErr);
+    }
+
+    // 4. Seed default products from products.json if empty
     try {
       const count = await this.productModel.countDocuments();
       if (count === 0) {
@@ -86,20 +151,22 @@ export class ProductsService implements OnModuleInit {
       };
     }
 
-    const sizeList = payload.sizes || ['50ml', '100ml'];
+    const sizeList = payload.sizes || ['One Size'];
     const variants = Array.isArray(payload.variants) && payload.variants.length > 0
       ? payload.variants
       : sizeList.map((size: string) => ({
           size,
           price,
           stock: Math.floor((parseInt(payload.stock) || 50) / sizeList.length),
-          sku: `KOR-${String(newId).padStart(4, '0')}-${size.replace('ml', '')}`
+          sku: payload.sku 
+            ? `${payload.sku}-${size === 'One Size' ? 'OS' : size.replace(/[^a-zA-Z0-9]/g, '')}`
+            : `BX-${String(newId).padStart(4, '0')}-${size === 'One Size' ? 'OS' : size.replace(/[^a-zA-Z0-9]/g, '')}`
         }));
 
     const newProduct = new this.productModel({
       ...payload,
       id: newId,
-      sku: payload.sku || `KOR-${String(newId).padStart(4, '0')}`,
+      sku: payload.sku || `BX-${String(newId).padStart(4, '0')}`,
       slug,
       price,
       originalPrice,
