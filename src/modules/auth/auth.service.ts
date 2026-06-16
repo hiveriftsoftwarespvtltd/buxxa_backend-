@@ -70,11 +70,14 @@ export class AuthService {
     } catch (err) {
       console.error('Failed to send OTP email:', err);
       console.log(`[DEVELOPMENT ALERT] SMTP send failed. OTP for ${cleanEmail} is: ${otp}`);
-      return {
+      const response: any = {
         success: true,
         message: 'OTP sent to your email.',
-        tempPassDev: otp // In real prod, do not send this back to client
       };
+      if (process.env.NODE_ENV === 'development') {
+        response.tempPassDev = otp;
+      }
+      return response;
     }
   }
 
