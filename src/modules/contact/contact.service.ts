@@ -65,7 +65,7 @@ export class ContactService {
     await this.mailerService.sendMail({
       to: receiverEmail,
       from: `BUXXA Website Alerts <${emailUser}>`,
-      subject: `🔔 New Contact Inquiry: ${subject || 'General Inquiry'}`,
+      subject: `New Contact Inquiry: ${subject || 'General Inquiry'}`,
       html: emailHtml,
     });
 
