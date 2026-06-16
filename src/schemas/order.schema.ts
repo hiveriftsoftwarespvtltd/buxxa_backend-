@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 @Schema({ timestamps: true })
 export class Order extends Document {
   @Prop({ required: true, unique: true })
-  id: string; // custom ID e.g. KOR-2401
+  id: string; // custom ID e.g. BXX-2401
 
   @Prop({ default: '' })
   customerId: string; // customer user ID reference

@@ -8,6 +8,7 @@ export class CategoriesController {
 
   @Get()
   async getAll(@Res() res: Response) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     const categories = await this.categoriesService.findAll();
     return res.status(HttpStatus.OK).json(categories);
   }

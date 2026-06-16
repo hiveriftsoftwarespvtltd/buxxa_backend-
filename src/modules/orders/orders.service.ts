@@ -14,15 +14,25 @@ export class OrdersService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
+    try {
+      const hasOldOrders = await this.orderModel.findOne({ id: /^KOR-/ }).exec();
+      if (hasOldOrders) {
+        console.log('🧹 Clearing legacy KOR- orders for fresh BXX- seed...');
+        await this.orderModel.deleteMany({}).exec();
+      }
+    } catch (err) {
+      console.error('Error clearing old orders:', err);
+    }
+
     const count = await this.orderModel.countDocuments();
     if (count === 0) {
       console.log('🌱 Seeding initial orders into MongoDB...');
       const defaultOrders = [
-        { id: 'KOR-2401', customer: 'Priya Sharma',  email: 'priya@gmail.com',  date: '28 May 2026', items: 2, total: 9998,  status: 'delivered',  payment: 'paid',     city: 'Mumbai', address: 'Flat 402, Sea Breeze, Bandra, Mumbai, Maharashtra - 400050' },
-        { id: 'KOR-2402', customer: 'Arjun Mehta',   email: 'arjun@gmail.com',  date: '27 May 2026', items: 1, total: 7999,  status: 'shipped',    payment: 'paid',     city: 'Delhi', address: 'H-12, Green Park Extension, New Delhi, Delhi - 110016' },
-        { id: 'KOR-2403', customer: 'Kavya Reddy',   email: 'kavya@gmail.com',  date: '27 May 2026', items: 3, total: 16497, status: 'processing', payment: 'paid',     city: 'Bangalore', address: '45, Lavender Lane, Koramangala, Bangalore, Karnataka - 560034' },
-        { id: 'KOR-2404', customer: 'Rohan Gupta',   email: 'rohan@gmail.com',  date: '26 May 2026', items: 1, total: 3499,  status: 'pending',    payment: 'pending',  city: 'Pune', address: 'Plot 89, Tech Colony, Hinjewadi, Pune, Maharashtra - 411057' },
-        { id: 'KOR-2405', customer: 'Sneha Patel',   email: 'sneha@gmail.com',  date: '25 May 2026', items: 2, total: 12498, status: 'delivered',  payment: 'paid',     city: 'Ahmedabad', address: 'A-21, River View Apartments, Ashram Road, Ahmedabad, Gujarat - 380009' }
+        { id: 'BXX-2401', customer: 'Priya Sharma',  email: 'priya@gmail.com',  date: '28 May 2026', items: 2, total: 9998,  status: 'delivered',  payment: 'paid',     city: 'Mumbai', address: 'Flat 402, Sea Breeze, Bandra, Mumbai, Maharashtra - 400050' },
+        { id: 'BXX-2402', customer: 'Arjun Mehta',   email: 'arjun@gmail.com',  date: '27 May 2026', items: 1, total: 7999,  status: 'shipped',    payment: 'paid',     city: 'Delhi', address: 'H-12, Green Park Extension, New Delhi, Delhi - 110016' },
+        { id: 'BXX-2403', customer: 'Kavya Reddy',   email: 'kavya@gmail.com',  date: '27 May 2026', items: 3, total: 16497, status: 'processing', payment: 'paid',     city: 'Bangalore', address: '45, Lavender Lane, Koramangala, Bangalore, Karnataka - 560034' },
+        { id: 'BXX-2404', customer: 'Rohan Gupta',   email: 'rohan@gmail.com',  date: '26 May 2026', items: 1, total: 3499,  status: 'pending',    payment: 'pending',  city: 'Pune', address: 'Plot 89, Tech Colony, Hinjewadi, Pune, Maharashtra - 411057' },
+        { id: 'BXX-2405', customer: 'Sneha Patel',   email: 'sneha@gmail.com',  date: '25 May 2026', items: 2, total: 12498, status: 'delivered',  payment: 'paid',     city: 'Ahmedabad', address: 'A-21, River View Apartments, Ashram Road, Ahmedabad, Gujarat - 380009' }
       ];
       await this.orderModel.insertMany(defaultOrders);
       console.log('✅ Seeded initial orders successfully.');
@@ -55,9 +65,9 @@ export class OrdersService implements OnModuleInit {
     }
     const orders = await this.findAll();
     
-    // Generate order ID following legacy pattern (KOR-2401, etc.)
+    // Generate order ID following Buxxa pattern (BXX-2401, etc.)
     const orderNum = 2400 + orders.length + 1;
-    const orderId = `KOR-${orderNum}`;
+    const orderId = `BXX-${orderNum}`;
 
     const dateStr = new Date().toLocaleString('en-IN', {
       day: 'numeric', month: 'short', year: 'numeric',
