@@ -112,7 +112,7 @@ export class CouponsService implements OnModuleInit {
 
     // 5. Send confirmation mail to user
     const emailUser = this.configService.get<string>('EMAIL_USER');
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:5173';
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://buxaa.in';
 
     if (emailUser) {
       console.log(`✉️ Dispatching SMTP discount redemption email for coupon ${normalizedCode} to ${cleanEmail}...`);
