@@ -12,7 +12,6 @@ export class CategoriesController {
     const categories = await this.categoriesService.findAll();
     return res.status(HttpStatus.OK).json(categories);
   }
-
   @Post('add')
   async addCategory(@Body() body: any, @Res() res: Response) {
     try {
@@ -23,7 +22,6 @@ export class CategoriesController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
     }
   }
-
   @Post('update')
   async updateCategory(@Body() body: any, @Res() res: Response) {
     try {
@@ -37,7 +35,6 @@ export class CategoriesController {
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
     }
   }
-
   @Post('delete')
   async deleteCategory(@Body() body: { id: any }, @Res() res: Response) {
     try {

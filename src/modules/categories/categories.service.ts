@@ -12,7 +12,6 @@ export class CategoriesService implements OnModuleInit {
   ) {}
 
   async onModuleInit() {
-    // Check if new category structure exists. If not, clear and re-seed.
     try {
       const hasNewCategory = await this.categoryModel.findOne({ slug: 'gym-sports' }).exec();
       const hasOldCategory = await this.categoryModel.findOne({ slug: 'travel-collection' }).exec();
@@ -23,8 +22,6 @@ export class CategoriesService implements OnModuleInit {
     } catch (err) {
       console.error('Error checking/clearing old categories:', err);
     }
-
-    // 2. Seed default categories from categories.json if empty
     try {
       const count = await this.categoryModel.countDocuments();
       if (count === 0) {
@@ -66,7 +63,6 @@ export class CategoriesService implements OnModuleInit {
 
     return newCategory.save();
   }
-
   async update(id: number, payload: any): Promise<Category | null> {
     const updateData: any = { ...payload };
     if (payload.name) {
