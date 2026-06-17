@@ -26,16 +26,28 @@ export class CouponsService implements OnModuleInit {
       let jsonPath = path.join(__dirname, 'coupons_list.json');
       if (!fs.existsSync(jsonPath)) {
         // Fallback for development if json is not copied to dist yet
-        jsonPath = path.join(process.cwd(), 'src', 'modules', 'coupons', 'coupons_list.json');
+        jsonPath = path.join(
+          process.cwd(),
+          'src',
+          'modules',
+          'coupons',
+          'coupons_list.json',
+        );
       }
 
       if (fs.existsSync(jsonPath)) {
         const fileContent = fs.readFileSync(jsonPath, 'utf8');
         const codesList: string[] = JSON.parse(fileContent);
-        this.couponCodesSet = new Set(codesList.map(c => c.trim().toUpperCase()));
-        console.log(`🎟️ CouponsService initialized with ${this.couponCodesSet.size} codes.`);
+        this.couponCodesSet = new Set(
+          codesList.map((c) => c.trim().toUpperCase()),
+        );
+        console.log(
+          `🎟️ CouponsService initialized with ${this.couponCodesSet.size} codes.`,
+        );
       } else {
-        console.warn('⚠️ coupons_list.json file not found in coupons module folder or source folder.');
+        console.warn(
+          '⚠️ coupons_list.json file not found in coupons module folder or source folder.',
+        );
       }
     } catch (err) {
       console.error('❌ Failed to load coupons_list.json:', err);
@@ -47,9 +59,30 @@ export class CouponsService implements OnModuleInit {
       if (count === 0) {
         console.log('🌱 Seeding default coupons into MongoDB...');
         const defaultCoupons = [
-          { code: 'BUXAA10', type: 'percent', value: 10, desc: '10% off your order', minSubtotal: 0, isActive: true },
-          { code: 'WELCOME20', type: 'percent', value: 20, desc: '20% off for new customers', minSubtotal: 0, isActive: true },
-          { code: 'FLAT500', type: 'fixed', value: 500, desc: '₹500 off on orders above ₹3,000', minSubtotal: 3000, isActive: true }
+          {
+            code: 'BUXAA10',
+            type: 'percent',
+            value: 10,
+            desc: '10% off your order',
+            minSubtotal: 0,
+            isActive: true,
+          },
+          {
+            code: 'WELCOME20',
+            type: 'percent',
+            value: 20,
+            desc: '20% off for new customers',
+            minSubtotal: 0,
+            isActive: true,
+          },
+          {
+            code: 'FLAT500',
+            type: 'fixed',
+            value: 500,
+            desc: '₹500 off on orders above ₹3,000',
+            minSubtotal: 3000,
+            isActive: true,
+          },
         ];
         await this.couponModel.insertMany(defaultCoupons);
         console.log('✅ Seeded default coupons successfully.');
@@ -79,7 +112,9 @@ export class CouponsService implements OnModuleInit {
     }
 
     // 2. Check if this coupon code has already been redeemed globally
-    const existingByCode = await this.redeemedCouponModel.findOne({ code: normalizedCode });
+    const existingByCode = await this.redeemedCouponModel.findOne({
+      code: normalizedCode,
+    });
     if (existingByCode) {
       return {
         success: false,
@@ -88,11 +123,14 @@ export class CouponsService implements OnModuleInit {
     }
 
     // 3. Check if this email has already redeemed any Level Up coupon code
-    const existingByEmail = await this.redeemedCouponModel.findOne({ email: cleanEmail });
+    const existingByEmail = await this.redeemedCouponModel.findOne({
+      email: cleanEmail,
+    });
     if (existingByEmail) {
       return {
         success: false,
-        message: 'You have already redeemed a Level Up coupon code on this account.',
+        message:
+          'You have already redeemed a Level Up coupon code on this account.',
       };
     }
 
@@ -112,10 +150,13 @@ export class CouponsService implements OnModuleInit {
 
     // 5. Send confirmation mail to user
     const emailUser = this.configService.get<string>('EMAIL_USER');
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'https://buxaa.in';
+    const frontendUrl =
+      this.configService.get<string>('FRONTEND_URL') || 'https://buxaa.in';
 
     if (emailUser) {
-      console.log(`✉️ Dispatching SMTP discount redemption email for coupon ${normalizedCode} to ${cleanEmail}...`);
+      console.log(
+        `✉️ Dispatching SMTP discount redemption email for coupon ${normalizedCode} to ${cleanEmail}...`,
+      );
 
       const emailHtml = `
         <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
@@ -155,7 +196,7 @@ export class CouponsService implements OnModuleInit {
           </div>
           
           <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-            <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+            <p style="margin: 0;">© 2026 BUXXA. All rights reserved. Developed by <a href="https://hiverift.com" style="color: #C9A84C; text-decoration: none;">hiverift.com</a></p>
           </div>
         </div>
       `;
@@ -167,7 +208,9 @@ export class CouponsService implements OnModuleInit {
           subject: `🎉 Coupon Code Redeemed Successfully — BUXXA`,
           html: emailHtml,
         });
-        console.log(`✅ Discount coupon email dispatched successfully to ${cleanEmail}.`);
+        console.log(
+          `✅ Discount coupon email dispatched successfully to ${cleanEmail}.`,
+        );
         return {
           success: true,
           code: normalizedCode,
@@ -184,7 +227,8 @@ export class CouponsService implements OnModuleInit {
           type: 'fixed',
           value: 200,
           desc: '₹200 off your order (Level Up Discount)',
-          message: 'Coupon is valid and applied (email notification skipped due to mailer error).',
+          message:
+            'Coupon is valid and applied (email notification skipped due to mailer error).',
         };
       }
     }
@@ -217,21 +261,115 @@ export class CouponsService implements OnModuleInit {
   }
 
   async delete(code: string) {
-    return this.couponModel.findOneAndDelete({ code: code.toUpperCase() }).exec();
+    return this.couponModel
+      .findOneAndDelete({ code: code.toUpperCase() })
+      .exec();
   }
 
-  async validate(code: string, subtotal: number) {
+  async update(originalCode: string, data: any) {
+    const originalCodeUpper = originalCode.trim().toUpperCase();
+    const coupon = await this.couponModel
+      .findOne({ code: originalCodeUpper })
+      .exec();
+    if (!coupon) {
+      throw new Error(`Coupon code "${originalCodeUpper}" not found.`);
+    }
+
+    if (data.code) {
+      const newCodeUpper = data.code.trim().toUpperCase();
+      if (newCodeUpper !== originalCodeUpper) {
+        const existing = await this.couponModel
+          .findOne({ code: newCodeUpper })
+          .exec();
+        if (existing) {
+          throw new Error(`Coupon code "${newCodeUpper}" already exists.`);
+        }
+        coupon.code = newCodeUpper;
+      }
+    }
+
+    if (data.type !== undefined) coupon.type = data.type;
+    if (data.value !== undefined) coupon.value = data.value;
+    if (data.minSubtotal !== undefined) coupon.minSubtotal = data.minSubtotal;
+    if (data.desc !== undefined) coupon.desc = data.desc;
+    if (data.isActive !== undefined) coupon.isActive = data.isActive;
+    if (data.expiryDate !== undefined) {
+      coupon.expiryDate = data.expiryDate ? new Date(data.expiryDate) : null;
+    }
+    if (data.usageLimit !== undefined) {
+      coupon.usageLimit =
+        data.usageLimit !== null && data.usageLimit !== ''
+          ? Number(data.usageLimit)
+          : null;
+    }
+    if (data.maxDiscount !== undefined) {
+      coupon.maxDiscount =
+        data.maxDiscount !== null && data.maxDiscount !== ''
+          ? Number(data.maxDiscount)
+          : null;
+    }
+    if (data.usedCount !== undefined) {
+      coupon.usedCount = Number(data.usedCount);
+    }
+
+    return coupon.save();
+  }
+
+  async incrementUsedCount(code: string) {
+    const normalizedCode = code.trim().toUpperCase();
+    return this.couponModel
+      .findOneAndUpdate(
+        { code: normalizedCode },
+        { $inc: { usedCount: 1 } },
+        { new: true },
+      )
+      .exec();
+  }
+
+  async findByCode(code: string) {
+    return this.couponModel.findOne({ code: code.toUpperCase() }).exec();
+  }
+
+  async validate(code: string, subtotal: number, email?: string) {
     const normalizedCode = code.trim().toUpperCase();
 
     // Check custom database coupons first
-    const coupon = await this.couponModel.findOne({ code: normalizedCode, isActive: true }).exec();
+    const coupon = await this.couponModel
+      .findOne({ code: normalizedCode })
+      .exec();
     if (coupon) {
+      if (!coupon.isActive) {
+        return {
+          success: false,
+          message: `Coupon "${normalizedCode}" is inactive.`,
+        };
+      }
+
+      if (coupon.expiryDate && new Date() > new Date(coupon.expiryDate)) {
+        return {
+          success: false,
+          message: `Coupon "${normalizedCode}" has expired.`,
+        };
+      }
+
+      if (
+        coupon.usageLimit !== null &&
+        coupon.usageLimit !== undefined &&
+        coupon.usedCount >= coupon.usageLimit
+      ) {
+        return {
+          success: false,
+          message: `Coupon "${normalizedCode}" usage limit has been exceeded.`,
+        };
+      }
+
       if (subtotal < coupon.minSubtotal) {
         return {
           success: false,
           message: `Coupon "${normalizedCode}" requires a minimum cart subtotal of ₹${coupon.minSubtotal.toLocaleString('en-IN')}.`,
         };
       }
+
       return {
         success: true,
         coupon: {
@@ -239,13 +377,42 @@ export class CouponsService implements OnModuleInit {
           type: coupon.type,
           value: coupon.value,
           minSubtotal: coupon.minSubtotal,
-          desc: coupon.desc || `${coupon.type === 'percent' ? `${coupon.value}%` : `₹${coupon.value}`} off your order`,
-        }
+          maxDiscount: coupon.maxDiscount,
+          desc:
+            coupon.desc ||
+            `${coupon.type === 'percent' ? `${coupon.value}%` : `₹${coupon.value}`} off your order`,
+        },
       };
     }
 
     // Check Level Up coupons
     if (this.couponCodesSet.has(normalizedCode)) {
+      // Check if this coupon has already been redeemed
+      const existingByCode = await this.redeemedCouponModel
+        .findOne({ code: normalizedCode })
+        .exec();
+      if (existingByCode) {
+        return {
+          success: false,
+          message: 'This coupon code has already been redeemed.',
+        };
+      }
+
+      // If email is provided, check if the email has already redeemed any Level Up coupon
+      if (email) {
+        const cleanEmail = email.trim().toLowerCase();
+        const existingByEmail = await this.redeemedCouponModel
+          .findOne({ email: cleanEmail })
+          .exec();
+        if (existingByEmail) {
+          return {
+            success: false,
+            message:
+              'You have already redeemed a Level Up coupon code on this account.',
+          };
+        }
+      }
+
       return {
         success: true,
         coupon: {
@@ -253,8 +420,9 @@ export class CouponsService implements OnModuleInit {
           type: 'fixed',
           value: 200,
           minSubtotal: 0,
+          maxDiscount: null,
           desc: '₹200 off your order (Level Up Discount)',
-        }
+        },
       };
     }
 

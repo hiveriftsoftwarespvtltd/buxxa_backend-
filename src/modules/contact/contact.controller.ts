@@ -13,7 +13,9 @@ export class ContactController {
       return res.status(HttpStatus.OK).json(result);
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
 }

@@ -31,7 +31,8 @@ export class AuthService {
     await customer.save();
 
     // Send email with OTP
-    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
+    const emailUser =
+      this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
@@ -54,7 +55,7 @@ export class AuthService {
         </p>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved. Developed by <a href="https://hiverift.com" style="color: #C9A84C; text-decoration: none;">hiverift.com</a></p>
         </div>
       </div>
     `;
@@ -62,23 +63,31 @@ export class AuthService {
     try {
       await this.mailerService.sendMail({
         to: customer.email,
-        from: `BUXXA <${emailUser}>`,
-        subject: `🔐 Password Reset Code — BUXXA`,
+        from: `BUXAA <${emailUser}>`,
+        replyTo: emailUser,
+        subject: `Your BUXAA Password Reset Code: ${otp}`,
+        text: `Hi ${customer.name},\n\nYour BUXAA password reset code is: ${otp}\n\nThis code expires in 10 minutes. If you did not request a reset, ignore this email.\n\n© 2026 BUXAA`,
         html: emailHtml,
       });
       return { success: true, message: 'OTP sent to your email.' };
     } catch (err) {
       console.error('Failed to send OTP email:', err);
-      console.log(`[DEVELOPMENT ALERT] SMTP send failed. OTP for ${cleanEmail} is: ${otp}`);
+      console.log(
+        `[DEVELOPMENT ALERT] SMTP send failed. OTP for ${cleanEmail} is: ${otp}`,
+      );
       return {
         success: true,
         message: 'OTP sent to your email.',
-        tempPassDev: otp // In real prod, do not send this back to client
+        tempPassDev: otp, // In real prod, do not send this back to client
       };
     }
   }
 
-  async forgotPassword(email: string, otp: string, newPassword?: string): Promise<any> {
+  async forgotPassword(
+    email: string,
+    otp: string,
+    newPassword?: string,
+  ): Promise<any> {
     const cleanEmail = email.trim().toLowerCase();
 
     // Find the customer
@@ -89,10 +98,15 @@ export class AuthService {
 
     // Verify OTP
     if (!customer.resetPasswordOtp || customer.resetPasswordOtp !== otp) {
-      throw new Error('Invalid OTP. Please check your email or request a new one.');
+      throw new Error(
+        'Invalid OTP. Please check your email or request a new one.',
+      );
     }
-    
-    if (customer.resetPasswordOtpExpiry && new Date() > customer.resetPasswordOtpExpiry) {
+
+    if (
+      customer.resetPasswordOtpExpiry &&
+      new Date() > customer.resetPasswordOtpExpiry
+    ) {
       throw new Error('OTP has expired. Please request a new one.');
     }
 
@@ -114,7 +128,8 @@ export class AuthService {
     await customer.save();
 
     // Send email with credentials
-    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
+    const emailUser =
+      this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
@@ -130,7 +145,7 @@ export class AuthService {
         </p>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved. Developed by <a href="https://hiverift.com" style="color: #C9A84C; text-decoration: none;">hiverift.com</a></p>
         </div>
       </div>
     `;
@@ -138,8 +153,10 @@ export class AuthService {
     try {
       await this.mailerService.sendMail({
         to: customer.email,
-        from: `BUXXA <${emailUser}>`,
-        subject: `✨ Password Reset Completed — BUXXA`,
+        from: `BUXAA <${emailUser}>`,
+        replyTo: emailUser,
+        subject: `BUXAA Password Reset Completed`,
+        text: `Hi ${customer.name},\n\nYour BUXAA account password has been reset successfully.\n\n© 2026 BUXAA`,
         html: emailHtml,
       });
       return { success: true, message: 'Password reset successfully!' };
@@ -189,7 +206,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const tokenPayload = { id: customer._id, email: customer.email, role: customer.role, name: customer.name };
+    const tokenPayload = {
+      id: customer._id,
+      email: customer.email,
+      role: customer.role,
+      name: customer.name,
+    };
     const token = this.jwtService.sign(tokenPayload);
 
     return {

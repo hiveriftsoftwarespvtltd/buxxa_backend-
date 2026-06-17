@@ -19,7 +19,9 @@ export class BrandsController {
       return res.status(HttpStatus.OK).json({ success: true, brand });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
 }

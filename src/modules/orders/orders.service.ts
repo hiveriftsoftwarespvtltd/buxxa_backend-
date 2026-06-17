@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Order } from '../../schemas/order.schema';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import { CouponsService } from '../coupons/coupons.service';
 
 @Injectable()
 export class OrdersService implements OnModuleInit {
@@ -11,11 +12,14 @@ export class OrdersService implements OnModuleInit {
     @InjectModel(Order.name) private readonly orderModel: Model<Order>,
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
+    private readonly couponsService: CouponsService,
   ) {}
 
   async onModuleInit() {
     try {
-      const hasOldOrders = await this.orderModel.findOne({ id: /^KOR-/ }).exec();
+      const hasOldOrders = await this.orderModel
+        .findOne({ id: /^KOR-/ })
+        .exec();
       if (hasOldOrders) {
         console.log('🧹 Clearing legacy KOR- orders for fresh BXX- seed...');
         await this.orderModel.deleteMany({}).exec();
@@ -28,11 +32,69 @@ export class OrdersService implements OnModuleInit {
     if (count === 0) {
       console.log('🌱 Seeding initial orders into MongoDB...');
       const defaultOrders = [
-        { id: 'BXX-2401', customer: 'Priya Sharma',  email: 'priya@gmail.com',  date: '28 May 2026', items: 2, total: 9998,  status: 'delivered',  payment: 'paid',     city: 'Mumbai', address: 'Flat 402, Sea Breeze, Bandra, Mumbai, Maharashtra - 400050' },
-        { id: 'BXX-2402', customer: 'Arjun Mehta',   email: 'arjun@gmail.com',  date: '27 May 2026', items: 1, total: 7999,  status: 'shipped',    payment: 'paid',     city: 'Delhi', address: 'H-12, Green Park Extension, New Delhi, Delhi - 110016' },
-        { id: 'BXX-2403', customer: 'Kavya Reddy',   email: 'kavya@gmail.com',  date: '27 May 2026', items: 3, total: 16497, status: 'processing', payment: 'paid',     city: 'Bangalore', address: '45, Lavender Lane, Koramangala, Bangalore, Karnataka - 560034' },
-        { id: 'BXX-2404', customer: 'Rohan Gupta',   email: 'rohan@gmail.com',  date: '26 May 2026', items: 1, total: 3499,  status: 'pending',    payment: 'pending',  city: 'Pune', address: 'Plot 89, Tech Colony, Hinjewadi, Pune, Maharashtra - 411057' },
-        { id: 'BXX-2405', customer: 'Sneha Patel',   email: 'sneha@gmail.com',  date: '25 May 2026', items: 2, total: 12498, status: 'delivered',  payment: 'paid',     city: 'Ahmedabad', address: 'A-21, River View Apartments, Ashram Road, Ahmedabad, Gujarat - 380009' }
+        {
+          id: 'BXX-2401',
+          customer: 'Priya Sharma',
+          email: 'priya@gmail.com',
+          date: '28 May 2026',
+          items: 2,
+          total: 9998,
+          status: 'delivered',
+          payment: 'paid',
+          city: 'Mumbai',
+          address: 'Flat 402, Sea Breeze, Bandra, Mumbai, Maharashtra - 400050',
+        },
+        {
+          id: 'BXX-2402',
+          customer: 'Arjun Mehta',
+          email: 'arjun@gmail.com',
+          date: '27 May 2026',
+          items: 1,
+          total: 7999,
+          status: 'shipped',
+          payment: 'paid',
+          city: 'Delhi',
+          address: 'H-12, Green Park Extension, New Delhi, Delhi - 110016',
+        },
+        {
+          id: 'BXX-2403',
+          customer: 'Kavya Reddy',
+          email: 'kavya@gmail.com',
+          date: '27 May 2026',
+          items: 3,
+          total: 16497,
+          status: 'processing',
+          payment: 'paid',
+          city: 'Bangalore',
+          address:
+            '45, Lavender Lane, Koramangala, Bangalore, Karnataka - 560034',
+        },
+        {
+          id: 'BXX-2404',
+          customer: 'Rohan Gupta',
+          email: 'rohan@gmail.com',
+          date: '26 May 2026',
+          items: 1,
+          total: 3499,
+          status: 'pending',
+          payment: 'pending',
+          city: 'Pune',
+          address:
+            'Plot 89, Tech Colony, Hinjewadi, Pune, Maharashtra - 411057',
+        },
+        {
+          id: 'BXX-2405',
+          customer: 'Sneha Patel',
+          email: 'sneha@gmail.com',
+          date: '25 May 2026',
+          items: 2,
+          total: 12498,
+          status: 'delivered',
+          payment: 'paid',
+          city: 'Ahmedabad',
+          address:
+            'A-21, River View Apartments, Ashram Road, Ahmedabad, Gujarat - 380009',
+        },
       ];
       await this.orderModel.insertMany(defaultOrders);
       console.log('✅ Seeded initial orders successfully.');
@@ -43,7 +105,10 @@ export class OrdersService implements OnModuleInit {
     return this.orderModel.find().sort({ createdAt: -1 }).exec();
   }
 
-  async findByEmailOrCustomerId(email?: string, customerId?: string): Promise<Order[]> {
+  async findByEmailOrCustomerId(
+    email?: string,
+    customerId?: string,
+  ): Promise<Order[]> {
     const query: any = {};
     const conditions: any[] = [];
     if (email && email !== 'undefined' && email !== 'null') {
@@ -61,28 +126,57 @@ export class OrdersService implements OnModuleInit {
 
   async create(payload: any): Promise<Order> {
     if (!payload.customerId) {
-      throw new Error('Customer ID is required. Please login to place an order.');
+      throw new Error(
+        'Customer ID is required. Please login to place an order.',
+      );
     }
     const orders = await this.findAll();
-    
+
     // Generate order ID following Buxxa pattern (BXX-2401, etc.)
     const orderNum = 2400 + orders.length + 1;
     const orderId = `BXX-${orderNum}`;
 
     const dateStr = new Date().toLocaleString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric',
-      hour: '2-digit', minute: '2-digit', hour12: true
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
     });
 
     const calculatedTotal = parseInt(payload.total) || 2999;
-    
+
     // Build address dynamically fallback to shippingAddress fields
     const shipping = payload.shippingAddress;
     const fullAddress = shipping
       ? `${shipping.address1}${shipping.address2 ? ', ' + shipping.address2 : ''}, ${shipping.city}, ${shipping.state} - ${shipping.pincode}`
-      : (payload.address1 
-          ? `${payload.address1}, ${payload.city}, ${payload.state} - ${payload.pincode}`
-          : payload.address || 'Address not specified');
+      : payload.address1
+        ? `${payload.address1}, ${payload.city}, ${payload.state} - ${payload.pincode}`
+        : payload.address || 'Address not specified';
+
+    let couponCode = '';
+    let discount = 0;
+
+    if (payload.couponCode) {
+      couponCode = payload.couponCode.trim().toUpperCase();
+      discount = Number(payload.discount) || 0;
+
+      try {
+        const dbCoupon = await this.couponsService.findByCode(couponCode);
+        if (dbCoupon) {
+          await this.couponsService.incrementUsedCount(couponCode);
+        } else {
+          // If not in DB, treat as a Level Up coupon. Attempt to redeem it.
+          await this.couponsService.validateAndRedeem(
+            couponCode,
+            payload.email,
+          );
+        }
+      } catch (err) {
+        console.error('Error redeeming coupon on order creation:', err);
+      }
+    }
 
     const savedOrder = new this.orderModel({
       id: orderId,
@@ -99,6 +193,8 @@ export class OrdersService implements OnModuleInit {
       address: fullAddress,
       shippingAddress: payload.shippingAddress || null,
       billingAddress: payload.billingAddress || null,
+      couponCode: couponCode,
+      discount: discount,
     });
 
     const newOrder = await savedOrder.save();
@@ -115,24 +211,32 @@ export class OrdersService implements OnModuleInit {
     if (s === 'delivered' || s === 'completed' || s === 'complete') {
       updateData.payment = 'paid';
     }
-    return this.orderModel.findOneAndUpdate({ id: orderId }, { $set: updateData }, { new: true }).exec();
+    return this.orderModel
+      .findOneAndUpdate({ id: orderId }, { $set: updateData }, { new: true })
+      .exec();
   }
 
   private async sendOrderEmail(order: Order, paymentMethod: string) {
     try {
       const emailUser = this.configService.get<string>('EMAIL_USER');
       if (!emailUser) return;
- 
-      console.log(`✉️ Sending luxury HTML invoice email for Order ${order.id}...`);
- 
-      const itemsRows = order.itemsDetails.map((item: any) => `
+
+      console.log(
+        `✉️ Sending luxury HTML invoice email for Order ${order.id}...`,
+      );
+
+      const itemsRows = order.itemsDetails
+        .map(
+          (item: any) => `
         <tr style="border-bottom: 1px solid #E8DFC8;">
           <td style="padding: 12px; font-size: 14px; color: #1A1208;"><strong>${item.name}</strong> (${item.size})</td>
           <td style="padding: 12px; font-size: 14px; color: #1A1208; text-align: center;">${item.quantity}</td>
           <td style="padding: 12px; font-size: 14px; color: #C9A84C; font-weight: bold; text-align: right;">₹${item.price.toLocaleString('en-IN')}</td>
         </tr>
-      `).join('');
- 
+      `,
+        )
+        .join('');
+
       const emailHtml = `
         <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
           <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
@@ -189,12 +293,12 @@ export class OrdersService implements OnModuleInit {
           </p>
           
           <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-            <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+            <p style="margin: 0;">© 2026 BUXXA. All rights reserved. Developed by <a href="https://hiverift.com" style="color: #C9A84C; text-decoration: none;">hiverift.com</a></p>
             <p style="margin: 5px 0 0;">Need assistance? Get in touch at <a href="mailto:${emailUser}" style="color: #C9A84C; text-decoration: none;">${emailUser}</a></p>
           </div>
         </div>
       `;
- 
+
       await this.mailerService.sendMail({
         to: order.email,
         from: `BUXXA <${emailUser}>`,
@@ -202,9 +306,14 @@ export class OrdersService implements OnModuleInit {
         html: emailHtml,
       });
 
-      console.log(`✅ Automated confirmation invoice email sent to ${order.email}.`);
+      console.log(
+        `✅ Automated confirmation invoice email sent to ${order.email}.`,
+      );
     } catch (err) {
-      console.error('❌ Failed to dispatch SMTP order confirmation email:', err);
+      console.error(
+        '❌ Failed to dispatch SMTP order confirmation email:',
+        err,
+      );
     }
   }
 }

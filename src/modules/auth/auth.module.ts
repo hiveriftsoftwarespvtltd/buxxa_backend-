@@ -13,7 +13,8 @@ import { CustomersModule } from '../customers/customers.module';
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET') || 'lokeshkumar',
         signOptions: {
-          expiresIn: (configService.get<string>('ACCESS_TOKEN_TTL') || '30d') as any,
+          expiresIn: (configService.get<string>('ACCESS_TOKEN_TTL') ||
+            '30d') as any,
         },
       }),
       inject: [ConfigService],

@@ -12,8 +12,14 @@ async function bootstrap() {
   app.use(urlencoded({ extended: true, limit: '50mb' }));
 
   // Serve static assets from public/images
-  app.use('/images', express.static(path.join(process.cwd(), 'public', 'images')));
-  app.use('/api/images', express.static(path.join(process.cwd(), 'public', 'images')));
+  app.use(
+    '/images',
+    express.static(path.join(process.cwd(), 'public', 'images')),
+  );
+  app.use(
+    '/api/images',
+    express.static(path.join(process.cwd(), 'public', 'images')),
+  );
 
   // Enable Cross-Origin Resource Sharing (CORS) matching allowed origins
   app.enableCors({

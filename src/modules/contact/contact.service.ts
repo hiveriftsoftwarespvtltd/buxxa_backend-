@@ -10,17 +10,24 @@ export class ContactService {
   ) {}
 
   async submitContact(payload: any) {
-    const { name, email, subject, message } = payload;
+    const { name, email, phone, subject, message } = payload;
 
     const emailUser = this.configService.get<string>('EMAIL_USER');
-    const receiverEmail = this.configService.get<string>('CONTACT_RECEIVER_EMAIL') || this.configService.get<string>('ADMIN_EMAIL') || emailUser;
+    const receiverEmail =
+      this.configService.get<string>('CONTACT_RECEIVER_EMAIL') ||
+      this.configService.get<string>('ADMIN_EMAIL') ||
+      emailUser;
 
     if (!emailUser || !receiverEmail) {
-      console.warn('⚠️ SMTP settings not fully defined. Skipping email dispatch.');
+      console.warn(
+        '⚠️ SMTP settings not fully defined. Skipping email dispatch.',
+      );
       return { success: true, message: 'Message logged (email skipped)' };
     }
 
-    console.log(`✉️ Dispatching SMTP contact notification email to ${receiverEmail}...`);
+    console.log(
+      `✉️ Dispatching SMTP contact notification email to ${receiverEmail}...`,
+    );
 
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
@@ -44,6 +51,12 @@ export class ContactService {
               <td style="color: #8A7A5A; font-weight: bold;">Sender Email:</td>
               <td style="color: #1A1208;"><a href="mailto:${email}" style="color: #C9A84C; text-decoration: none;">${email}</a></td>
             </tr>
+            ${phone ? `
+            <tr>
+              <td style="color: #8A7A5A; font-weight: bold;">Sender Phone:</td>
+              <td style="color: #1A1208;">${phone}</td>
+            </tr>
+            ` : ''}
             <tr>
               <td style="color: #8A7A5A; font-weight: bold;">Inquiry Subject:</td>
               <td style="color: #1A1208; font-weight: bold;">${subject || 'General Inquiry'}</td>
@@ -57,11 +70,11 @@ export class ContactService {
         </div>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved. Developed by <a href="https://hiverift.com" style="color: #C9A84C; text-decoration: none;">hiverift.com</a></p>
         </div>
       </div>
     `;
- 
+
     await this.mailerService.sendMail({
       to: receiverEmail,
       from: `BUXXA Website Alerts <${emailUser}>`,
@@ -70,6 +83,9 @@ export class ContactService {
     });
 
     console.log('✅ Contact form email dispatched successfully.');
-    return { success: true, message: 'Your message has been sent successfully!' };
+    return {
+      success: true,
+      message: 'Your message has been sent successfully!',
+    };
   }
 }

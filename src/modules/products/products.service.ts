@@ -14,10 +14,20 @@ export class ProductsService implements OnModuleInit {
   async onModuleInit() {
     // 1. Check if old perfume database seed exists and clear it to allow fresh bags seed
     try {
-      const hasPerfume = await this.productModel.findOne({ slug: 'rose-mystique' }).exec();
-      const hasOldCategory = await this.productModel.findOne({ category: { $in: ['men', 'women', 'unisex', 'signature', 'gift-sets'] } }).exec();
+      const hasPerfume = await this.productModel
+        .findOne({ slug: 'rose-mystique' })
+        .exec();
+      const hasOldCategory = await this.productModel
+        .findOne({
+          category: {
+            $in: ['men', 'women', 'unisex', 'signature', 'gift-sets'],
+          },
+        })
+        .exec();
       if (hasPerfume || hasOldCategory) {
-        console.log('🧹 Detected old perfume data in Products collection. Clearing for bag store seed...');
+        console.log(
+          '🧹 Detected old perfume data in Products collection. Clearing for bag store seed...',
+        );
         await this.productModel.deleteMany({}).exec();
       }
     } catch (err) {
@@ -26,12 +36,16 @@ export class ProductsService implements OnModuleInit {
 
     // 2. Migrate existing products to set isNewArrival to match isNew (or fallback to true)
     try {
-      const updateResult = await this.productModel.updateMany(
-        { isNewArrival: { $exists: false } },
-        { $set: { isNewArrival: true } }
-      ).exec();
+      const updateResult = await this.productModel
+        .updateMany(
+          { isNewArrival: { $exists: false } },
+          { $set: { isNewArrival: true } },
+        )
+        .exec();
       if (updateResult.modifiedCount > 0) {
-        console.log(`🧹 Migrated ${updateResult.modifiedCount} products to use isNewArrival schema field.`);
+        console.log(
+          `🧹 Migrated ${updateResult.modifiedCount} products to use isNewArrival schema field.`,
+        );
       }
     } catch (migrationErr) {
       console.error('Migration isNew -> isNewArrival error:', migrationErr);
@@ -84,35 +98,46 @@ export class ProductsService implements OnModuleInit {
         }
 
         if (updated) {
-          console.log(`🧹 Migrating legacy product metadata (SKU/Size) for: ${prod.name}`);
-          await this.productModel.updateOne(
-            { _id: prod._id },
-            { 
-              $set: { 
-                sizes: pSizes, 
-                selectedSize: pSelectedSize,
-                sku: pSku,
-                variants: pVariants
-              } 
-            }
-          ).exec();
+          console.log(
+            `🧹 Migrating legacy product metadata (SKU/Size) for: ${prod.name}`,
+          );
+          await this.productModel
+            .updateOne(
+              { _id: prod._id },
+              {
+                $set: {
+                  sizes: pSizes,
+                  selectedSize: pSelectedSize,
+                  sku: pSku,
+                  variants: pVariants,
+                },
+              },
+            )
+            .exec();
         }
       }
     } catch (migrErr) {
-      console.error('Error migrating legacy product size/sku attributes:', migrErr);
+      console.error(
+        'Error migrating legacy product size/sku attributes:',
+        migrErr,
+      );
     }
 
     // 4. Seed default products from products.json if empty
     try {
       const count = await this.productModel.countDocuments();
       if (count === 0) {
-        console.log('🌱 Seeding default BUXXA products into MongoDB from products.json...');
+        console.log(
+          '🌱 Seeding default BUXXA products into MongoDB from products.json...',
+        );
         const jsonPath = path.join(process.cwd(), 'src', 'products.json');
         if (fs.existsSync(jsonPath)) {
           const rawData = fs.readFileSync(jsonPath, 'utf8');
           const defaultProducts = JSON.parse(rawData);
           await this.productModel.insertMany(defaultProducts);
-          console.log(`✅ Seeded ${defaultProducts.length} default products successfully.`);
+          console.log(
+            `✅ Seeded ${defaultProducts.length} default products successfully.`,
+          );
         } else {
           console.error(`⚠️ Seed file not found at: ${jsonPath}`);
         }
@@ -132,36 +157,56 @@ export class ProductsService implements OnModuleInit {
 
   async add(payload: any): Promise<Product> {
     const products = await this.findAll();
-    const newId = products.reduce((max, p) => p.id > max ? p.id : max, 0) + 1;
+    const newId = products.reduce((max, p) => (p.id > max ? p.id : max), 0) + 1;
     const slug = (payload.name || 'new-fragrance')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
     const price = parseInt(payload.price) || 2999;
-    const originalPrice = payload.originalPrice ? parseInt(payload.originalPrice) : null;
-    const discount = originalPrice ? Math.round(((originalPrice - price) / originalPrice) * 100) : 0;
+    const originalPrice = payload.originalPrice
+      ? parseInt(payload.originalPrice)
+      : null;
+    const discount = originalPrice
+      ? Math.round(((originalPrice - price) / originalPrice) * 100)
+      : 0;
 
-    let notes = payload.notes || { top: ['Fresh Notes'], heart: ['Floral Notes'], base: ['Amber Notes'] };
+    let notes = payload.notes || {
+      top: ['Fresh Notes'],
+      heart: ['Floral Notes'],
+      base: ['Amber Notes'],
+    };
     if (notes && !Array.isArray(notes.top)) {
       notes = {
-        top: typeof notes.top === 'string' ? notes.top.split(',').map((s: string) => s.trim()) : ['Fresh Notes'],
-        heart: typeof notes.heart === 'string' ? notes.heart.split(',').map((s: string) => s.trim()) : ['Floral Notes'],
-        base: typeof notes.base === 'string' ? notes.base.split(',').map((s: string) => s.trim()) : ['Amber Notes'],
+        top:
+          typeof notes.top === 'string'
+            ? notes.top.split(',').map((s: string) => s.trim())
+            : ['Fresh Notes'],
+        heart:
+          typeof notes.heart === 'string'
+            ? notes.heart.split(',').map((s: string) => s.trim())
+            : ['Floral Notes'],
+        base:
+          typeof notes.base === 'string'
+            ? notes.base.split(',').map((s: string) => s.trim())
+            : ['Amber Notes'],
       };
     }
 
     const sizeList = payload.sizes || ['One Size'];
-    const variants = Array.isArray(payload.variants) && payload.variants.length > 0
-      ? payload.variants
-      : sizeList.map((size: string) => ({
-          size,
-          price,
-          stock: Math.floor((parseInt(payload.stock) || 50) / sizeList.length),
-          sku: payload.sku 
-            ? `${payload.sku}-${size === 'One Size' ? 'OS' : size.replace(/[^a-zA-Z0-9]/g, '')}`
-            : `BX-${String(newId).padStart(4, '0')}-${size === 'One Size' ? 'OS' : size.replace(/[^a-zA-Z0-9]/g, '')}`
-        }));
+    const variants =
+      Array.isArray(payload.variants) && payload.variants.length > 0
+        ? payload.variants
+        : sizeList.map((size: string) => ({
+            size,
+            price,
+            stock: Math.floor(
+              (parseInt(payload.stock) || 50) / sizeList.length,
+            ),
+            sku: payload.sku
+              ? `${payload.sku}-${size === 'One Size' ? 'OS' : size.replace(/[^a-zA-Z0-9]/g, '')}`
+              : `BX-${String(newId).padStart(4, '0')}-${size === 'One Size' ? 'OS' : size.replace(/[^a-zA-Z0-9]/g, '')}`,
+          }));
 
     const newProduct = new this.productModel({
       ...payload,
@@ -184,8 +229,8 @@ export class ProductsService implements OnModuleInit {
         description: payload.subtitle || 'Premium BUXXA product',
         keywords: [slug, 'BUXXA', 'bag'],
         slug,
-        ogImage: payload.img || 'images/prod-rose.webp'
-      }
+        ogImage: payload.img || 'images/prod-rose.webp',
+      },
     });
 
     return newProduct.save();
@@ -202,7 +247,9 @@ export class ProductsService implements OnModuleInit {
       updateData.price = parseInt(payload.price);
     }
     if (payload.originalPrice !== undefined) {
-      updateData.originalPrice = payload.originalPrice ? parseInt(payload.originalPrice) : null;
+      updateData.originalPrice = payload.originalPrice
+        ? parseInt(payload.originalPrice)
+        : null;
     }
     if (payload.stock !== undefined) {
       updateData.stock = parseInt(payload.stock);
@@ -211,13 +258,25 @@ export class ProductsService implements OnModuleInit {
     // Calculate discount if price or originalPrice changes
     if (payload.price !== undefined || payload.originalPrice !== undefined) {
       const currentDoc = await this.productModel.findOne({ id }).exec();
-      const updatedPrice = payload.price !== undefined ? parseInt(payload.price) : (currentDoc ? currentDoc.price : 0);
-      const updatedOriginalPrice = payload.originalPrice !== undefined 
-        ? (payload.originalPrice ? parseInt(payload.originalPrice) : null) 
-        : (currentDoc ? currentDoc.originalPrice : null);
-      
+      const updatedPrice =
+        payload.price !== undefined
+          ? parseInt(payload.price)
+          : currentDoc
+            ? currentDoc.price
+            : 0;
+      const updatedOriginalPrice =
+        payload.originalPrice !== undefined
+          ? payload.originalPrice
+            ? parseInt(payload.originalPrice)
+            : null
+          : currentDoc
+            ? currentDoc.originalPrice
+            : null;
+
       if (updatedOriginalPrice && updatedPrice) {
-        updateData.discount = Math.round(((updatedOriginalPrice - updatedPrice) / updatedOriginalPrice) * 100);
+        updateData.discount = Math.round(
+          ((updatedOriginalPrice - updatedPrice) / updatedOriginalPrice) * 100,
+        );
       } else {
         updateData.discount = 0;
       }
@@ -227,24 +286,47 @@ export class ProductsService implements OnModuleInit {
       let notes = payload.notes;
       if (notes && !Array.isArray(notes.top)) {
         notes = {
-          top: typeof notes.top === 'string' ? notes.top.split(',').map((s: string) => s.trim()) : notes.top,
-          heart: typeof notes.heart === 'string' ? notes.heart.split(',').map((s: string) => s.trim()) : notes.heart,
-          base: typeof notes.base === 'string' ? notes.base.split(',').map((s: string) => s.trim()) : notes.base,
+          top:
+            typeof notes.top === 'string'
+              ? notes.top.split(',').map((s: string) => s.trim())
+              : notes.top,
+          heart:
+            typeof notes.heart === 'string'
+              ? notes.heart.split(',').map((s: string) => s.trim())
+              : notes.heart,
+          base:
+            typeof notes.base === 'string'
+              ? notes.base.split(',').map((s: string) => s.trim())
+              : notes.base,
         };
       }
       updateData.notes = notes;
     }
 
-    console.log('Final updateData object to be sent to Mongo:', JSON.stringify(updateData, null, 2));
+    console.log(
+      'Final updateData object to be sent to Mongo:',
+      JSON.stringify(updateData, null, 2),
+    );
 
-    const updatedDoc = await this.productModel.findOneAndUpdate({ id }, { $set: updateData }, { new: true }).exec();
-    console.log('Returned document from DB after update:', updatedDoc ? JSON.stringify({
-      id: updatedDoc.id,
-      name: updatedDoc.name,
-      isBestseller: updatedDoc.isBestseller,
-      isNewArrival: updatedDoc.isNewArrival,
-      isFeatured: updatedDoc.isFeatured
-    }, null, 2) : 'null');
+    const updatedDoc = await this.productModel
+      .findOneAndUpdate({ id }, { $set: updateData }, { new: true })
+      .exec();
+    console.log(
+      'Returned document from DB after update:',
+      updatedDoc
+        ? JSON.stringify(
+            {
+              id: updatedDoc.id,
+              name: updatedDoc.name,
+              isBestseller: updatedDoc.isBestseller,
+              isNewArrival: updatedDoc.isNewArrival,
+              isFeatured: updatedDoc.isFeatured,
+            },
+            null,
+            2,
+          )
+        : 'null',
+    );
     console.log('--- PRODUCTS SERVICE UPDATE END ---');
 
     return updatedDoc;

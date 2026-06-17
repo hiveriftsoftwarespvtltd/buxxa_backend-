@@ -44,7 +44,9 @@ import { CouponsModule } from './modules/coupons/coupons.module';
           },
         },
         defaults: {
-          from: configService.get<string>('MAIL_FROM') || '"BUXXA" <noreply@buxxa.com>',
+          from:
+            configService.get<string>('MAIL_FROM') ||
+            '"BUXXA" <noreply@buxxa.com>',
         },
       }),
       inject: [ConfigService],

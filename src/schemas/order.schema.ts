@@ -44,6 +44,12 @@ export class Order extends Document {
 
   @Prop({ type: Object, default: null })
   billingAddress: any; // complete billing address details with ID
+
+  @Prop({ default: '' })
+  couponCode: string;
+
+  @Prop({ default: 0 })
+  discount: number;
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

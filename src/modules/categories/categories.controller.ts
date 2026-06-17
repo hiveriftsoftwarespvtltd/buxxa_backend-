@@ -8,7 +8,10 @@ export class CategoriesController {
 
   @Get()
   async getAll(@Res() res: Response) {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader(
+      'Cache-Control',
+      'no-store, no-cache, must-revalidate, proxy-revalidate',
+    );
     const categories = await this.categoriesService.findAll();
     return res.status(HttpStatus.OK).json(categories);
   }
@@ -19,20 +22,29 @@ export class CategoriesController {
       return res.status(HttpStatus.OK).json({ success: true, category });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
   @Post('update')
   async updateCategory(@Body() body: any, @Res() res: Response) {
     try {
-      const category = await this.categoriesService.update(parseInt(body.id), body);
+      const category = await this.categoriesService.update(
+        parseInt(body.id),
+        body,
+      );
       if (category) {
         return res.status(HttpStatus.OK).json({ success: true, category });
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Category not found' });
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'Category not found' });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
   @Post('delete')
@@ -42,10 +54,14 @@ export class CategoriesController {
       if (category) {
         return res.status(HttpStatus.OK).json({ success: true });
       }
-      return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Category not found' });
+      return res
+        .status(HttpStatus.NOT_FOUND)
+        .json({ success: false, message: 'Category not found' });
     } catch (err) {
       console.error(err);
-      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: err.message });
+      return res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json({ success: false, message: err.message });
     }
   }
 }

@@ -13,10 +13,16 @@ export class CategoriesService implements OnModuleInit {
 
   async onModuleInit() {
     try {
-      const hasNewCategory = await this.categoryModel.findOne({ slug: 'gym-sports' }).exec();
-      const hasOldCategory = await this.categoryModel.findOne({ slug: 'travel-collection' }).exec();
+      const hasNewCategory = await this.categoryModel
+        .findOne({ slug: 'gym-sports' })
+        .exec();
+      const hasOldCategory = await this.categoryModel
+        .findOne({ slug: 'travel-collection' })
+        .exec();
       if (!hasNewCategory || hasOldCategory) {
-        console.log('🧹 Aligning categories in MongoDB to the new BUXXA bags taxonomy...');
+        console.log(
+          '🧹 Aligning categories in MongoDB to the new BUXXA bags taxonomy...',
+        );
         await this.categoryModel.deleteMany({}).exec();
       }
     } catch (err) {
@@ -25,13 +31,17 @@ export class CategoriesService implements OnModuleInit {
     try {
       const count = await this.categoryModel.countDocuments();
       if (count === 0) {
-        console.log('🌱 Seeding default BUXXA categories into MongoDB from categories.json...');
+        console.log(
+          '🌱 Seeding default BUXXA categories into MongoDB from categories.json...',
+        );
         const jsonPath = path.join(process.cwd(), 'src', 'categories.json');
         if (fs.existsSync(jsonPath)) {
           const rawData = fs.readFileSync(jsonPath, 'utf8');
           const defaultCategories = JSON.parse(rawData);
           await this.categoryModel.insertMany(defaultCategories);
-          console.log(`✅ Seeded ${defaultCategories.length} default categories successfully.`);
+          console.log(
+            `✅ Seeded ${defaultCategories.length} default categories successfully.`,
+          );
         } else {
           console.error(`⚠️ Seed file not found at: ${jsonPath}`);
         }
@@ -47,7 +57,8 @@ export class CategoriesService implements OnModuleInit {
 
   async add(payload: any): Promise<Category> {
     const categories = await this.findAll();
-    const newId = categories.reduce((max, c) => c.id > max ? c.id : max, 0) + 1;
+    const newId =
+      categories.reduce((max, c) => (c.id > max ? c.id : max), 0) + 1;
     const slug = (payload.name || 'category')
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
@@ -77,7 +88,9 @@ export class CategoriesService implements OnModuleInit {
     if (payload.count !== undefined) {
       updateData.count = parseInt(payload.count) || 0;
     }
-    return this.categoryModel.findOneAndUpdate({ id }, { $set: updateData }, { new: true }).exec();
+    return this.categoryModel
+      .findOneAndUpdate({ id }, { $set: updateData }, { new: true })
+      .exec();
   }
 
   async delete(id: number): Promise<Category | null> {

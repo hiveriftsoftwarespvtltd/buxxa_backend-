@@ -39,9 +39,13 @@ export class CouponsController {
     try {
       const result = await this.couponsService.delete(body.code);
       if (result) {
-        return res.status(HttpStatus.OK).json({ success: true, message: 'Coupon deleted successfully.' });
+        return res
+          .status(HttpStatus.OK)
+          .json({ success: true, message: 'Coupon deleted successfully.' });
       } else {
-        return res.status(HttpStatus.NOT_FOUND).json({ success: false, message: 'Coupon not found.' });
+        return res
+          .status(HttpStatus.NOT_FOUND)
+          .json({ success: false, message: 'Coupon not found.' });
       }
     } catch (err) {
       console.error(err);
@@ -52,10 +56,37 @@ export class CouponsController {
     }
   }
 
-  @Post('validate')
-  async validateCoupon(@Body() body: { code: string; subtotal: number }, @Res() res: Response) {
+  @Post('update')
+  async updateCoupon(
+    @Body() body: { originalCode: string; data: any },
+    @Res() res: Response,
+  ) {
     try {
-      const result = await this.couponsService.validate(body.code, body.subtotal);
+      const result = await this.couponsService.update(
+        body.originalCode,
+        body.data,
+      );
+      return res.status(HttpStatus.OK).json({ success: true, coupon: result });
+    } catch (err) {
+      console.error(err);
+      return res.status(HttpStatus.BAD_REQUEST).json({
+        success: false,
+        message: err.message || 'Failed to update coupon.',
+      });
+    }
+  }
+
+  @Post('validate')
+  async validateCoupon(
+    @Body() body: { code: string; subtotal: number; email?: string },
+    @Res() res: Response,
+  ) {
+    try {
+      const result = await this.couponsService.validate(
+        body.code,
+        body.subtotal,
+        body.email,
+      );
       if (result.success) {
         return res.status(HttpStatus.OK).json(result);
       } else {
@@ -71,9 +102,15 @@ export class CouponsController {
   }
 
   @Post('redeem')
-  async redeemCoupon(@Body() body: { code: string; email?: string }, @Res() res: Response) {
+  async redeemCoupon(
+    @Body() body: { code: string; email?: string },
+    @Res() res: Response,
+  ) {
     try {
-      const result = await this.couponsService.validateAndRedeem(body.code, body.email);
+      const result = await this.couponsService.validateAndRedeem(
+        body.code,
+        body.email,
+      );
       if (result.success) {
         return res.status(HttpStatus.OK).json(result);
       } else {

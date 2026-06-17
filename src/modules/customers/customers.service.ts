@@ -9,7 +9,10 @@ import { MailerService } from '@nestjs-modules/mailer';
 @Injectable()
 export class CustomersService {
   // In-memory cache for signup OTPs
-  private signupOtps = new Map<string, { otp: string; expiry: Date; payload: any }>();
+  private signupOtps = new Map<
+    string,
+    { otp: string; expiry: Date; payload: any }
+  >();
 
   constructor(
     @InjectModel(Customer.name) private readonly customerModel: Model<Customer>,
@@ -40,9 +43,12 @@ export class CustomersService {
 
     // Store in-memory
     this.signupOtps.set(email, { otp, expiry, payload });
-    console.log(`[DEVELOPMENT ALERT] Generated signup OTP for ${email} is: ${otp}`);
+    console.log(
+      `[DEVELOPMENT ALERT] Generated signup OTP for ${email} is: ${otp}`,
+    );
 
-    const emailUser = this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
+    const emailUser =
+      this.configService.get<string>('EMAIL_USER') || 'concierge@buxxa.com';
     const emailHtml = `
       <div style="font-family: 'Lato', sans-serif; background-color: #FFFDF7; padding: 40px 20px; color: #1A1208; max-width: 600px; margin: 0 auto; border: 1px solid #E8DFC8;">
         <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #C9A84C; padding-bottom: 20px;">
@@ -65,7 +71,7 @@ export class CustomersService {
         </p>
         
         <div style="text-align: center; margin-top: 40px; border-top: 1px solid #E8DFC8; padding-top: 20px; font-size: 11px; color: #8A7A5A;">
-          <p style="margin: 0;">© 2026 BUXXA. All rights reserved.</p>
+          <p style="margin: 0;">© 2026 BUXXA. All rights reserved. Developed by <a href="https://hiverift.com" style="color: #C9A84C; text-decoration: none;">hiverift.com</a></p>
         </div>
       </div>
     `;
@@ -73,18 +79,22 @@ export class CustomersService {
     try {
       await this.mailerService.sendMail({
         to: email,
-        from: `BUXXA <${emailUser}>`,
-        subject: `🔐 Email Verification Code — BUXXA`,
+        from: `BUXAA <${emailUser}>`,
+        replyTo: emailUser,
+        subject: `Your BUXAA Verification Code: ${otp}`,
+        text: `Hi ${payload.firstName || 'Customer'},\n\nYour BUXAA email verification code is: ${otp}\n\nThis code expires in 10 minutes.\n\nIf you did not create this account, please ignore this email.\n\n© 2026 BUXAA`,
         html: emailHtml,
       });
       return { success: true, message: 'Verification OTP sent to your email.' };
     } catch (err) {
       console.error('Failed to send verification email:', err);
-      console.log(`[DEVELOPMENT ALERT] SMTP send failed. Signup OTP for ${email} is: ${otp}`);
+      console.log(
+        `[DEVELOPMENT ALERT] SMTP send failed. Signup OTP for ${email} is: ${otp}`,
+      );
       return {
         success: true,
         message: 'Verification OTP sent to your email.',
-        tempPassDev: otp // Development helper
+        tempPassDev: otp, // Development helper
       };
     }
   }
@@ -99,7 +109,9 @@ export class CustomersService {
 
     if (new Date() > cached.expiry) {
       this.signupOtps.delete(normEmail);
-      throw new Error('Verification OTP has expired. Please try registering again.');
+      throw new Error(
+        'Verification OTP has expired. Please try registering again.',
+      );
     }
 
     if (cached.otp !== otp) {
@@ -124,10 +136,15 @@ export class CustomersService {
 
     const hashedPassword = await bcrypt.hash(payload.password, 10);
     const date = new Date().toLocaleDateString('en-IN', {
-      day: 'numeric', month: 'short', year: 'numeric'
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
     });
 
-    const fullName = `${payload.firstName || ''} ${payload.lastName || ''}`.trim() || payload.name || 'Guest Customer';
+    const fullName =
+      `${payload.firstName || ''} ${payload.lastName || ''}`.trim() ||
+      payload.name ||
+      'Guest Customer';
 
     const newCustomer = new this.customerModel({
       name: fullName,
@@ -180,7 +197,11 @@ export class CustomersService {
     return customer.addresses;
   }
 
-  async updateAddress(email: string, addressId: string, updatedFields: any): Promise<any[]> {
+  async updateAddress(
+    email: string,
+    addressId: string,
+    updatedFields: any,
+  ): Promise<any[]> {
     const customer = await this.findByEmail(email);
     if (!customer) throw new Error('Customer not found');
 
@@ -210,8 +231,12 @@ export class CustomersService {
     const customer = await this.findByEmail(email);
     if (!customer) throw new Error('Customer not found');
 
-    const wasDefault = customer.addresses.find((addr: any) => addr.id === addressId)?.isDefault;
-    customer.addresses = customer.addresses.filter((addr: any) => addr.id !== addressId);
+    const wasDefault = customer.addresses.find(
+      (addr: any) => addr.id === addressId,
+    )?.isDefault;
+    customer.addresses = customer.addresses.filter(
+      (addr: any) => addr.id !== addressId,
+    );
 
     if (wasDefault && customer.addresses.length > 0) {
       customer.addresses[0].isDefault = true; // set first remaining address as default
@@ -221,7 +246,10 @@ export class CustomersService {
     return customer.addresses;
   }
 
-  async updateProfile(email: string, updatedFields: { name?: string; phone?: string; city?: string }): Promise<Customer> {
+  async updateProfile(
+    email: string,
+    updatedFields: { name?: string; phone?: string; city?: string },
+  ): Promise<Customer> {
     const customer = await this.findByEmail(email);
     if (!customer) throw new Error('Customer not found');
 

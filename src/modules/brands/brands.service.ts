@@ -13,7 +13,9 @@ export class BrandsService implements OnModuleInit {
     try {
       const hasKiora = await this.brandModel.findOne({ name: 'KIORA' }).exec();
       if (hasKiora) {
-        console.log('🧹 Detected old brand data (KIORA). Clearing for clean BUXXA seed...');
+        console.log(
+          '🧹 Detected old brand data (KIORA). Clearing for clean BUXXA seed...',
+        );
         await this.brandModel.deleteMany({}).exec();
       }
     } catch (err) {
@@ -24,7 +26,13 @@ export class BrandsService implements OnModuleInit {
     if (count === 0) {
       console.log('🌱 Seeding default brands into MongoDB...');
       const defaultBrands = [
-        { id: 1, name: 'BUXXA', logo: '', tagline: 'Premium Bags & Luggage', enabled: true }
+        {
+          id: 1,
+          name: 'BUXXA',
+          logo: '',
+          tagline: 'Premium Bags & Luggage',
+          enabled: true,
+        },
       ];
       await this.brandModel.insertMany(defaultBrands);
       console.log('✅ Seeded default brands successfully.');
@@ -37,7 +45,7 @@ export class BrandsService implements OnModuleInit {
 
   async add(payload: any): Promise<Brand> {
     const brands = await this.findAll();
-    const newId = brands.reduce((max, b) => b.id > max ? b.id : max, 0) + 1;
+    const newId = brands.reduce((max, b) => (b.id > max ? b.id : max), 0) + 1;
 
     const newBrand = new this.brandModel({
       ...payload,

@@ -20,6 +20,18 @@ export class Coupon extends Document {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ default: null, type: Date })
+  expiryDate: Date | null;
+
+  @Prop({ default: null, type: Number })
+  usageLimit: number | null;
+
+  @Prop({ default: 0, required: true })
+  usedCount: number;
+
+  @Prop({ default: null, type: Number })
+  maxDiscount: number | null;
 }
 
 export const CouponSchema = SchemaFactory.createForClass(Coupon);

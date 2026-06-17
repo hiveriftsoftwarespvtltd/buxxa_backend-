@@ -17,7 +17,8 @@ export class UploadService {
     const uniqueName = `upload-${Date.now()}-${safeName}`;
 
     // 1. Save to frontend's public folder so it's immediately available in dev
-    const frontendPublicImages = 'c:\\Users\\TEST\\Downloads\\buxxa\\public\\images';
+    const frontendPublicImages =
+      'c:\\Users\\TEST\\Downloads\\buxxa\\public\\images';
     if (fs.existsSync(frontendPublicImages)) {
       const destPath = path.join(frontendPublicImages, uniqueName);
       fs.writeFileSync(destPath, buffer);

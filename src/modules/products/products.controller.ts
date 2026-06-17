@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Param, Res, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Res,
+  HttpStatus,
+} from '@nestjs/common';
 import { ProductsService } from './products.service';
 import type { Response } from 'express';
 
@@ -40,7 +48,10 @@ export class ProductsController {
   @Post('update')
   async updateProduct(@Body() body: any, @Res() res: Response) {
     try {
-      const product = await this.productsService.update(parseInt(body.id), body);
+      const product = await this.productsService.update(
+        parseInt(body.id),
+        body,
+      );
       if (product) {
         return res.status(HttpStatus.OK).json({ success: true, product });
       }

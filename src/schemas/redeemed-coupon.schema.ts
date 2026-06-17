@@ -10,4 +10,5 @@ export class RedeemedCoupon extends Document {
   email: string;
 }
 
-export const RedeemedCouponSchema = SchemaFactory.createForClass(RedeemedCoupon);
+export const RedeemedCouponSchema =
+  SchemaFactory.createForClass(RedeemedCoupon);
